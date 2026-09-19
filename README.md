@@ -2,6 +2,8 @@
 
 # iconlens
 
+> Lint standalone SVG before it ships.
+
 **Offline accessibility lint for standalone `.svg` files.**
 
 [![CI](https://github.com/srivtx/iconlens/actions/workflows/ci.yml/badge.svg)](https://github.com/srivtx/iconlens/actions/workflows/ci.yml)
@@ -56,6 +58,25 @@ name. The existing tools do not catch it:
 screen reader would and flags the structural failures that break standalone SVG.
 
 ## Install
+
+`iconlens` is not published to npm. Install it from GitHub with the one-line script (requires [Bun](https://bun.sh)):
+
+```bash
+# One-line install (installs the `iconlens` binary)
+curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh
+
+# Or run once, without installing
+bunx github:srivtx/iconlens icons/*.svg
+
+# Install globally
+bun add -g github:srivtx/iconlens
+iconlens icons/*.svg
+
+# Add to a project as a dev dependency
+bun add -d github:srivtx/iconlens
+```
+
+## Development
 
 ```bash
 bun install
