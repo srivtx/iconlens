@@ -35,7 +35,7 @@
     "type": "git",
     "url": "git+https://github.com/srivtx/iconlens.git"
   },
-  "homepage": "https://lens-site-srivtx.vercel.app/iconlens.html",
+  "homepage": "https://iconlens-srivtx.vercel.app",
   "bugs": {
     "url": "https://github.com/srivtx/iconlens/issues"
   },

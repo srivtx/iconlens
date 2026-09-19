@@ -16,7 +16,7 @@
 
 ---
 
-**Live site:** [iconlens](https://lens-site-srivtx.vercel.app/iconlens.html)  ·  **Playground:** [https://lens-site-srivtx.vercel.app/playground](https://lens-site-srivtx.vercel.app/playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
+**Live site:** [iconlens](https://iconlens-srivtx.vercel.app)  ·  **Playground:** [https://iconlens-srivtx.vercel.app/#playground](https://iconlens-srivtx.vercel.app/#playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
 
 ## Website
 
