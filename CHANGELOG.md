@@ -8,15 +8,15 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
-- Initial release of `svg-a11y`.
+- Initial release of `iconlens`.
 - `auditSvg(source, file?)` static accessibility audit for standalone SVG files.
 - Accessible-name computation following SVG-AAM priority order.
 - Rules for missing accessible names, dangling `aria-labelledby`/`aria-describedby`
   references, duplicate ids, broken `<use>` references, `tabindex` on non-interactive
   elements, and out-of-order `<title>`.
 - `formatText` and `formatJson` reporters.
-- `svg-a11y` CLI with `--dir`, `--json`, and `--quiet` flags.
+- `iconlens` CLI with `--dir`, `--json`, and `--quiet` flags.
 - `makeGoodSvg` / `makeBadSvg` fixtures and `writeFixturesTo(dir)` helper.
 - GitHub Actions CI running typecheck, tests, and fixture CLI checks.
 
-[0.1.0]: https://github.com/example/svg-a11y/releases/tag/v0.1.0
+[0.1.0]: https://github.com/example/iconlens/releases/tag/v0.1.0

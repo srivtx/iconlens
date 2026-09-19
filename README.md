@@ -1,137 +1,142 @@
-# svg-a11y
+<div align="center">
 
-Offline, static accessibility linter for **standalone `.svg` files**.
+# iconlens
 
-`svg-a11y` reads an SVG source string (no browser, no DOM, no network), computes the
-accessible name the way assistive tech would, and reports the accessibility problems
-that ship silently inside icon libraries and design-system asset folders.
+**Offline accessibility lint for standalone `.svg` files.**
 
-```sh
-bunx svg-a11y icons/*.svg
-svg-a11y --dir assets/icons --json
+[![CI](https://github.com/srivtx/iconlens/actions/workflows/ci.yml/badge.svg)](https://github.com/srivtx/iconlens/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/srivtx/iconlens?sort=semver&color=4f46e5)](https://github.com/srivtx/iconlens/releases)
+[![license](https://img.shields.io/badge/license-MIT-0f766e)](LICENSE)
+[![runtime](https://img.shields.io/badge/runtime-Bun-14151A?logo=bun&logoColor=white)](https://bun.sh)
+[![types](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
+[![tests](https://img.shields.io/badge/tests-10-0f766e)](#testing)
+[![network](https://img.shields.io/badge/network-none-0f766e)](#privacy)
+
+</div>
+
+---
+
+## The problem
+
+Design systems and icon libraries ship `.svg` assets that have no accessible
+name. The existing tools do not catch it:
+
+| Tool | Why it doesn't solve it |
+|---|---|
+| [svglint](https://github.com/simple-icons/svglint) | Generic XML/attribute linter — accessibility only if you hand-write the rules; no accessible-name computation, no dangling-IDREF checks |
+| [svgo](https://github.com/svg/svgo) | Actively **removes** `<title>` and `<desc>` by default |
+| axe-core / Pa11y | Need a live DOM and a browser; they don't lint asset files |
+| Biome `noSvgWithoutTitle` | One rule, and only for inline HTML/JSX |
+| W3C [ACT rule 7d6734](https://www.w3.org/WAI/standards-guidelines/act/rules/7d6734/) | Defines the test, ships no tool |
+
+`iconlens` lints the asset itself: it computes the accessible name the way a
+screen reader would and flags the structural failures that break standalone SVG.
+
+## Install
+
+```bash
+bun install
+bun run src/cli.ts fixtures/bad.svg
 ```
 
-## The gap
+## Usage
 
-Standalone `.svg` assets are everywhere — design systems, icon packs, brand kits,
-downloaded illustrations — and most of them ship with **no accessible name**. A bare
-`role="img"` without a `<title>`, `<desc>`, or `aria-label` is announced as
-*"graphic"* or skipped entirely. This is a WCAG 2.1 Level A failure (1.1.1 Non-text
-Content; 4.1.2 Name, Role, Value) and it recurs across thousands of files that no one
-reviews by hand.
+```bash
+# Lint files
+iconlens icons/*.svg
 
-Existing tools do not cover the case:
+# Lint a directory
+iconlens --dir icons/
 
-| Tool | What it actually does | Why it misses standalone SVG assets |
-| --- | --- | --- |
-| [svglint](https://github.com/buhrmi/svglint) (53★, MIT) | Generic XML / attribute linting | No accessible-name computation; does not know `role`, `aria-labelledby`, or SVG-AAM |
-| [svgo](https://github.com/svg/svgo) | Optimizes/compresses SVG | Actively **removes** `<title>`/`<desc>` and other metadata by default |
-| [axe-core](https://github.com/dequelabs/axe-core) / [Pa11y](https://pa11y.org) | Full accessibility engines | Require a live DOM / headless browser; cannot lint a file on disk as an asset |
-| [Biome](https://biomejs.dev) `noSvgWithoutTitle` | Biomes lint rule | Only covers **inline** SVG inside HTML/JSX, never standalone `.svg` files |
-| W3C [ACT rule 7d6734](https://www.w3.org/WAI/standards-guidelines/act/rules/7d6734/) | Defines the test for SVG text alternatives | Ships **no tooling** — it is a specification, not a linter |
+# Machine-readable
+iconlens logo.svg --json
 
-`svg-a11y` fills that gap: a dependency-light, offline CLI and library that runs on
-plain `.svg` sources in CI.
+# Summary only
+iconlens logo.svg --quiet
+```
+
+Exit code is `1` on any error-severity issue, `0` otherwise, `2` with no
+arguments.
+
+### Library
+
+```ts
+import { auditSvg, parseSvg, accessibleName } from "iconlens";
+
+const result = auditSvg(source, "logo.svg");
+const name = accessibleName(parseSvg(source));
+// { name: "Company logo", source: "aria-labelledby" }
+```
 
 ## Rules
 
-| Rule | Severity | Description | WCAG |
-| --- | --- | --- | --- |
-| `SVG-NAME-001` | error | Root SVG has `role="img"` but no accessible name | 4.1.2 |
-| `SVG-NAME-002` | error | `aria-labelledby` references an id that does not exist | 4.1.2 |
-| `SVG-DECOR-003` | warning | Root SVG has no `role`, no name, and no `aria-hidden` | 1.1.1 |
-| `SVG-TITLE-004` | warning | `<title>` exists but is not the first child element | 1.3.1 |
-| `SVG-DESC-005` | info | Named graphic has no `<desc>` | 1.1.1 |
-| `SVG-ID-006` | error | Duplicate `id` values in the same document | 4.1.1 |
-| `SVG-USE-007` | warning | `<use href>` points at a missing id | 1.1.1 |
-| `SVG-FOCUS-008` | warning | `tabindex` on a non-interactive element | 2.4.3 |
+| Code | Severity | WCAG | Check |
+|---|---|---|---|
+| SVG-NAME-001 | error | 4.1.2 | `role="img"` with no accessible name |
+| SVG-NAME-002 | error | 4.1.2 | `aria-labelledby` references a missing id |
+| SVG-DECOR-003 | warning | 1.1.1 | No role, no name, not marked decorative |
+| SVG-TITLE-004 | warning | 1.3.1 | `<title>` is not the first child of `<svg>` |
+| SVG-DESC-005 | info | 1.1.1 | Named graphic without a `<desc>` |
+| SVG-ID-006 | error | — | Duplicate `id` attributes |
+| SVG-USE-007 | warning | — | `<use>` points at an id that does not exist |
+| SVG-FOCUS-008 | warning | 2.4.3 | `tabindex` on a non-interactive element |
 
-> Rule IDs and severities are shown for reference; the authoritative set lives in
-> `src/rules.ts`.
+## Accessible-name computation
 
-## CLI
+`iconlens` follows the SVG-AAM priority order:
+
+1. `aria-labelledby` — each referenced id is resolved and its text concatenated
+2. `aria-label`
+3. the first child `<title>`
+
+If none apply, the graphic has no accessible name and the rules say so.
+
+## How it works
 
 ```
-svg-a11y <file...> [--json] [--quiet]
-svg-a11y --dir <path> [--json] [--quiet]
-```
-
-- `--dir <path>` lints every `.svg` in `path` (non-recursive, sorted).
-- `--json` emits machine-readable JSON instead of text.
-- `--quiet` prints one summary line per file.
-- Exit code `0` when no errors, `1` when any file has `counts.error > 0`, `2` on bad usage.
-
-```sh
-svg-a11y icon.svg
-svg-a11y --dir public/icons
-svg-a11y --dir public/icons --quiet
-svg-a11y logo.svg --json
-```
-
-## Library
-
-```ts
-import { auditSvg, formatText, formatJson } from "svg-a11y";
-
-const result = auditSvg(svgSource, "logo.svg");
-if (result.counts.error > 0) {
-  console.error(formatText(result));
-  process.exit(1);
-}
-```
-
-`auditSvg(source, file?)` returns an `AuditResult` with `issues` and per-severity
-`counts`. Lower-level exports — `parseSvg`, `accessibleName`, `runRules` — are also
-available.
-
-### JSON output
-
-```json
-{
-  "file": "logo.svg",
-  "issues": [
-    {
-      "code": "SVG-NAME-001",
-      "severity": "error",
-      "message": "Graphic has no accessible name",
-      "location": "svg",
-      "wcag": "4.1.2"
-    }
-  ],
-  "counts": { "error": 1, "warning": 0, "info": 0 }
-}
+.svg ──fast-xml-parser──▶ node tree + id map + duplicate ids
+                            ├── accessibleName (SVG-AAM priority)
+                            └── rule functions → Issue[]
+                                  └── JSON / text report
 ```
 
 ## CI
 
 ```yaml
-- name: Lint SVG accessibility
-  run: svg-a11y --dir public/icons
+- name: Icon accessibility gate
+  run: iconlens --dir src/assets/icons --quiet
 ```
 
-The process exits non-zero on the first accessibility error, so a failing icon fails
-the build.
+## Testing
+
+| Gate | Result |
+|---|---|
+| `bun test` | 10 tests |
+| `bunx tsc --noEmit` | clean (strict) |
+| fixtures | `bun run make-fixtures` writes a clean and a broken SVG |
+
+Tests cover the good/bad fixtures and assert the name-priority order
+(`aria-labelledby` beats `title`).
+
+## Privacy
+
+No network code. Files are parsed locally.
 
 ## Limitations
 
-- **Static only.** It analyzes the file as text/tree; it does not render the SVG.
-- **No contrast checks.** Colour contrast requires computed rendering and is out of
-  scope.
-- **Accessible-name computation** follows the SVG-AAM priority order
-  (`aria-labelledby` → `aria-label` → `<title>` → …) but is **not** a full
-  implementation of the specification.
-- References to `<use>` targets are resolved within the document only; external
-  references are not fetched.
+- Static file analysis; it does not render or compute colour contrast.
+- Name computation follows SVG-AAM priority but does not implement every edge
+  of the full specification.
+- Inline SVG in HTML/JSX is out of scope.
 
-## Development
+## The suite
 
-```sh
-bun install
-bun run typecheck
-bun test
-bun run make-fixtures   # writes fixtures/good.svg and fixtures/bad.svg
-```
+- **booklens** — EPUB accessibility audit and fix
+- **officelens** — DOCX/PPTX accessibility audit
+- **odflens** — ODT/ODS/ODP accessibility audit
+- **iconlens** — standalone SVG accessibility lint *(this repo)*
+- **waxseal** — detached Ed25519 seal for WACZ web archives
 
 ## License
 
-MIT
+[MIT](LICENSE).

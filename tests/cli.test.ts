@@ -3,7 +3,7 @@ import { auditSvg } from "../src/audit.ts";
 import { makeBadSvg, makeGoodSvg } from "../src/fixtures.ts";
 import { formatText } from "../src/report.ts";
 
-describe("svg-a11y fixtures", () => {
+describe("iconlens fixtures", () => {
   test("good fixture has no errors", () => {
     const result = auditSvg(makeGoodSvg(), "good.svg");
     expect(result.counts.error).toBe(0);

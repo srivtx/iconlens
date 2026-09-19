@@ -1,11 +1,11 @@
 {
-  "name": "svg-a11y",
+  "name": "iconlens",
   "version": "0.1.0",
-  "description": "Offline static accessibility linter for standalone SVG files.",
+  "description": "Offline standalone-SVG accessibility linter. Computes accessible names per SVG-AAM and flags missing alt, dangling references and bad focus order.",
   "type": "module",
   "module": "src/index.ts",
   "bin": {
-    "svg-a11y": "src/cli.ts"
+    "iconlens": "src/cli.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

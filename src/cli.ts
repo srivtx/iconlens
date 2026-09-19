@@ -12,11 +12,11 @@ interface Options {
   files: string[];
 }
 
-const USAGE = `svg-a11y - offline accessibility linter for standalone SVG files
+const USAGE = `iconlens - offline accessibility linter for standalone SVG files
 
 Usage:
-  svg-a11y <file...> [--json] [--quiet]
-  svg-a11y --dir <path> [--json] [--quiet]
+  iconlens <file...> [--json] [--quiet]
+  iconlens --dir <path> [--json] [--quiet]
 
 Options:
   --dir <path>   Lint every .svg file in <path> (non-recursive, sorted)
