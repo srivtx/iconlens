@@ -18,6 +18,8 @@
 
 **Live site:** [iconlens](https://iconlens-srivtx.vercel.app)  ·  **Playground:** [https://iconlens-srivtx.vercel.app/#playground](https://iconlens-srivtx.vercel.app/#playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
 
+**Docs:** [Rules](https://iconlens-srivtx.vercel.app/rules)  ·  [Usage](https://iconlens-srivtx.vercel.app/usage)  ·  [CI](https://iconlens-srivtx.vercel.app/ci)  ·  [FAQ](https://iconlens-srivtx.vercel.app/faq)
+
 ## Website
 
 The product site and a fully client-side playground live at
@@ -252,6 +254,21 @@ No network code. Files are parsed locally.
 - **odflens** — ODT/ODS/ODP accessibility audit
 - **iconlens** — standalone SVG accessibility lint *(this repo)*
 - **waxseal** — detached Ed25519 seal for WACZ web archives
+
+## For agents
+
+Every tool emits stable JSON with `--json` and SARIF 2.1.0, with a documented
+exit-code scheme, so an agent can read findings without scraping a screen.
+
+- **Docs index:** the site serves a machine-readable index at
+  [iconlens-srivtx.vercel.app/llms.txt](https://iconlens-srivtx.vercel.app/llms.txt).
+- **MCP server:** [lenses-mcp](https://github.com/srivtx/lenses-mcp) exposes all
+  five tools over stdio (audit for each format, plus `booklens_fix`,
+  `waxseal_seal`, `waxseal_verify`, `waxseal_inspect`).
+
+  ```json
+  { "mcpServers": { "lenses": { "command": "bunx", "args": ["github:srivtx/lenses-mcp#main"] } } }
+  ```
 
 ## License
 
