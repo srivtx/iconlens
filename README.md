@@ -107,6 +107,44 @@ If none apply, the graphic has no accessible name and the rules say so.
   run: iconlens --dir src/assets/icons --quiet
 ```
 
+## SARIF and code scanning
+
+`iconlens` emits [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html),
+so findings show up inline in GitHub code scanning and the Security tab.
+
+```bash
+# Write a SARIF report
+iconlens --dir src/assets/icons --sarif iconlens.sarif
+
+# Upload it (GitHub Actions)
+- name: Icon accessibility scan
+  run: iconlens --dir src/assets/icons --sarif iconlens.sarif
+
+- name: Upload SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: iconlens.sarif
+```
+
+Each issue becomes a result with `ruleId` set to its code (for example
+`SVG-NAME-001`), a level mapped from severity (`error` → `error`,
+`warning` → `warning`, `info` → `note`), and a location pointing at the file.
+
+### Choosing the failure threshold
+
+By default the exit code is `1` only when an **error**-severity issue is found.
+Use `--fail-on` to tighten or loosen the gate:
+
+```bash
+iconlens icons/*.svg --fail-on error    # default
+iconlens icons/*.svg --fail-on warning  # fail on warnings too
+iconlens icons/*.svg --fail-on info     # fail on any finding
+iconlens icons/*.svg --fail-on none     # never fail on findings
+```
+
+`--fail-on` affects only the exit code; every issue is still reported and
+included in SARIF output.
+
 ## Testing
 
 | Gate | Result |

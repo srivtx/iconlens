@@ -4,6 +4,10 @@
   "description": "Offline standalone-SVG accessibility linter. Computes accessible names per SVG-AAM and flags missing alt, dangling references and bad focus order.",
   "type": "module",
   "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
   "bin": {
     "iconlens": "src/cli.ts"
   },
@@ -12,7 +16,33 @@
     "test": "bun test",
     "make-fixtures": "bun src/fixtures.ts"
   },
+  "keywords": [
+    "svg",
+    "accessibility",
+    "a11y",
+    "lint",
+    "linter",
+    "wcag",
+    "aria",
+    "sarif",
+    "code-scanning",
+    "bun"
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srivtx/iconlens.git"
+  },
+  "homepage": "https://github.com/srivtx/iconlens",
+  "bugs": {
+    "url": "https://github.com/srivtx/iconlens/issues"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "src",
     "README.md",
