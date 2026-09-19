@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "Offline standalone-SVG accessibility linter. Computes accessible names per SVG-AAM and flags missing alt, dangling references and bad focus order.",
   "type": "module",
-  "author": "srivtx",
+  "author": "svx",
   "main": "src/index.ts",
   "module": "src/index.ts",
   "types": "src/index.ts",
