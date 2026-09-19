@@ -1057,13 +1057,14 @@ textarea.input:focus-visible {
     display: inline-flex;
   }
 
-  .nav[data-open="true"] .nav__links {
+  .nav__links[data-open="true"] {
     display: flex;
     flex-direction: column;
     position: absolute;
     top: var(--nav-h);
     left: 0;
     right: 0;
+    margin-left: 0;
     padding: var(--s-3);
     gap: 2px;
     background: var(--canvas);
@@ -1087,4 +1088,431 @@ textarea.input:focus-visible {
   .playground__hint {
     display: none;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   v2 — product surfaces
+   A real terminal window and editorial (label + body) layouts. These exist
+   so a page can show what the tool actually does instead of a grid of
+   bordered boxes.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Terminal ───────────────────────────────────────────────────────────── */
+.term {
+  --term-bg: #0b0b0e;
+  --term-bar: #121216;
+  --term-line: #1e1e24;
+  --term-ink: #e8e8ef;
+  --term-mute: #8f8f9b;
+  --term-dim: #63636e;
+  position: relative;
+  border: 1px solid var(--term-line);
+  border-radius: var(--r-lg);
+  background: var(--term-bg);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  box-shadow: 0 30px 70px -40px rgba(0, 0, 0, 0.6);
+}
+
+.term::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.term__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--term-line);
+  background: var(--term-bar);
+}
+
+.term__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.term__dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2b2b32;
+}
+
+.term__dots i:nth-child(1) {
+  background: #ff5f57;
+}
+.term__dots i:nth-child(2) {
+  background: #febc2e;
+}
+.term__dots i:nth-child(3) {
+  background: #28c840;
+}
+
+.term__title {
+  color: var(--term-mute);
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.term__body {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  color: var(--term-ink);
+  font-size: 0.8125rem;
+  line-height: 1.78;
+  tab-size: 2;
+}
+
+.term__body .ln {
+  display: block;
+  white-space: pre;
+}
+
+.term__body .ln--wrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.term__body--wrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-x: hidden;
+}
+
+.term .p {
+  color: var(--term-dim);
+}
+.term .cmd {
+  color: #f2f2f7;
+}
+.term .err {
+  color: #f87171;
+}
+.term .warn {
+  color: #fbbf24;
+}
+.term .info {
+  color: #93c5fd;
+}
+.term .ok {
+  color: #4ade80;
+}
+.term .dim {
+  color: var(--term-dim);
+}
+.term .acc {
+  color: #a5b4fc;
+}
+.term .b {
+  font-weight: 700;
+}
+
+/* ── Split hero ─────────────────────────────────────────────────────────── */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  gap: clamp(32px, 5vw, 64px);
+  align-items: center;
+}
+
+.split > * {
+  min-width: 0;
+}
+
+.split--top {
+  align-items: start;
+}
+
+.split__copy {
+  min-width: 0;
+}
+
+.split__aside {
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Eyebrow ────────────────────────────────────────────────────────────── */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--mute);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ── Ledger rows ────────────────────────────────────────────────────────── */
+.rows {
+  border-top: 1px solid var(--hairline);
+}
+
+.trow {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) 250px 24px;
+  align-items: baseline;
+  gap: 24px;
+  padding: 22px 10px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--body);
+  transition: background var(--dur) var(--ease);
+}
+
+.trow:hover {
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.trow__id {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.trow__name {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.trow__fmt {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.trow__desc {
+  color: var(--mute);
+  font-size: 0.9375rem;
+}
+
+.trow__cmd {
+  color: var(--body);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.trow__go {
+  justify-self: end;
+  color: var(--faint);
+  transition: transform var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.trow:hover .trow__go {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
+@media (max-width: 900px) {
+  .trow {
+    grid-template-columns: minmax(0, 1fr) 24px;
+    gap: 8px 16px;
+  }
+
+  .trow__id {
+    grid-column: 1 / 2;
+  }
+
+  .trow__go {
+    grid-row: 1 / 2;
+    grid-column: 2 / 3;
+  }
+
+  .trow__desc,
+  .trow__cmd {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Editorial band ─────────────────────────────────────────────────────── */
+.band {
+  display: grid;
+  grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.band__body {
+  min-width: 0;
+}
+
+.band__label {
+  position: sticky;
+  top: calc(var(--nav-h) + 28px);
+  color: var(--faint);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.band__body > * + * {
+  margin-top: 20px;
+}
+
+.band__lead {
+  max-width: 46ch;
+  color: var(--ink);
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+}
+
+.band__body p {
+  max-width: 68ch;
+  color: var(--body);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 760px) {
+  .band {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .band__label {
+    position: static;
+  }
+}
+
+/* Let terminals wrap instead of scrolling sideways on small screens. */
+@media (max-width: 640px) {
+  .term__body,
+  .term__body .ln {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
+  }
+}
+
+/* ── Definition list ────────────────────────────────────────────────────── */
+.deflist {
+  border-top: 1px solid var(--hairline);
+}
+
+.defrow {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.defrow__term {
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.defrow__term code {
+  font-size: 0.8125rem;
+}
+
+.defrow__def {
+  max-width: 66ch;
+  margin: 0;
+  color: var(--mute);
+  font-size: 0.9375rem;
+}
+
+.defrow__def strong {
+  color: var(--body);
+  font-weight: 600;
+}
+
+.defrow__def code {
+  color: var(--ink);
+  font-size: 0.8125rem;
+}
+
+.defrow__def + .defrow__def {
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .defrow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* ── Feature grid (no boxes) ────────────────────────────────────────────── */
+.defgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px 48px;
+  margin: 0;
+}
+
+.defgrid > div {
+  min-width: 0;
+}
+
+.defgrid dt {
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.defgrid dd {
+  margin: 0;
+  color: var(--mute);
+  font-size: 0.9375rem;
+}
+
+.defgrid code {
+  color: var(--ink);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 720px) {
+  .defgrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ── Accent wash behind an aside ────────────────────────────────────────── */
+.wash {
+  position: relative;
+}
+
+.wash::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8%;
+  z-index: -1;
+  background: radial-gradient(
+    46% 52% at 70% 30%,
+    var(--accent-soft),
+    transparent 72%
+  );
+  pointer-events: none;
 }
