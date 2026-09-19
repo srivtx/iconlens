@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iconlens — offline SVG accessibility lint</title>
-<meta name="description" content="iconlens computes the accessible name of standalone SVG files the way a screen reader would and flags the structural failures that break them. Offline, no network, CI-ready.">
+<title>iconlens: offline SVG accessibility lint</title>
+<meta name="description" content="iconlens computes the accessible name of standalone SVG files the way a screen reader would, then flags the structural failures that break the name. It runs offline and emits text, JSON, or SARIF 2.1.0.">
 <meta name="theme-color" content="#e11d48">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="iconlens — offline SVG accessibility lint">
-<meta property="og:description" content="Offline accessibility lint for standalone .svg files — accessible-name computation, eight rules, JSON and SARIF 2.1.0 output.">
+<meta property="og:title" content="iconlens: offline SVG accessibility lint">
+<meta property="og:description" content="Offline accessibility lint for standalone .svg files: accessible-name computation, eight rules, and JSON or SARIF 2.1.0 output.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://iconlens-srivtx.vercel.app">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e11d48'/%3E%3Ccircle cx='14' cy='14' r='6.4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -80,61 +80,33 @@
     </div>
     <div class="wrap hero-grid">
       <div class="hero-copy reveal">
-        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> iconlens · offline SVG accessibility</p>
-        <h1 class="hero-title" id="hero-title">Accessible SVG, <span class="h1-accent">measured exactly.</span></h1>
-        <p class="lede">iconlens computes the accessible name of a standalone <code class="code">.svg</code> file the way a screen reader would — <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code> — and flags the structural failures that break it.</p>
-        <p class="subcopy">No browser, no network, no telemetry. Parse assets on disk, lint them in CI, and emit SARIF 2.1.0 for GitHub code scanning.</p>
+        <h1 class="hero-title" id="hero-title">Lint the accessibility of standalone SVG files</h1>
+        <p class="lede">iconlens computes the accessible name of a standalone <code class="code">.svg</code> file the way a screen reader would: <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code>. It flags the structural failures that break the name.</p>
+        <p class="subcopy">iconlens is written in TypeScript, runs on Bun, and is MIT licensed. It parses files on disk, runs in CI, and emits text, JSON, or SARIF 2.1.0 for GitHub code scanning. It does not use a browser or make network requests.</p>
 
         <div class="install-chip">
-          <code class="install-cmd">bun add -d iconlens</code>
-          <button type="button" class="install-copy" data-copy="bun add -d iconlens">Copy</button>
+          <code class="install-cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh</code>
+          <button type="button" class="install-copy" data-copy="curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh">Copy</button>
         </div>
 
         <div class="actions">
           <a class="btn btn-primary shimmer" href="#playground">Open the playground <span aria-hidden="true">→</span></a>
           <a class="btn btn-ghost" href="https://github.com/srivtx/iconlens">View source on GitHub</a>
         </div>
-
-        <ul class="trust-row">
-          <li class="badge">no network</li>
-          <li class="badge">MIT</li>
-          <li class="badge">Bun + TypeScript</li>
-          <li class="badge">SVG-AAM names</li>
-          <li class="badge">SARIF 2.1.0</li>
-        </ul>
       </div>
 
       <div class="hero-visual reveal">
         <div class="artboard">
           <div class="artboard-bar">
-            <span class="artboard-dots" aria-hidden="true">
-              <i class="dot dot-r"></i><i class="dot dot-y"></i><i class="dot dot-g"></i>
-            </span>
             <span class="artboard-file">icon.svg</span>
             <span class="artboard-status">24 × 24</span>
           </div>
           <div class="artboard-canvas" aria-hidden="true">
-            <span class="ruler ruler-x"></span>
-            <span class="ruler ruler-y"></span>
-            <span class="crosshair crosshair-a"></span>
-            <span class="crosshair crosshair-b"></span>
-            <div class="sel-frame">
-              <span class="sel-handle handle-tl"></span>
-              <span class="sel-handle handle-tc"></span>
-              <span class="sel-handle handle-tr"></span>
-              <span class="sel-handle handle-ml"></span>
-              <span class="sel-handle handle-mr"></span>
-              <span class="sel-handle handle-bl"></span>
-              <span class="sel-handle handle-bc"></span>
-              <span class="sel-handle handle-br"></span>
-              <svg class="lens-mark" viewBox="0 0 120 120" focusable="false">
-                <path class="lens-path" d="M18 60 C 38 26, 82 26, 102 60 C 82 94, 38 94, 18 60 Z"></path>
-                <circle class="lens-pupil" cx="60" cy="60" r="13"></circle>
-                <circle class="lens-spark" cx="52" cy="52" r="3.4"></circle>
-              </svg>
-            </div>
-            <span class="measure measure-w">78 px</span>
-            <span class="measure measure-h">42 px</span>
+            <svg class="lens-mark" viewBox="0 0 120 120" focusable="false">
+              <path class="lens-path" d="M18 60 C 38 26, 82 26, 102 60 C 82 94, 38 94, 18 60 Z"></path>
+              <circle class="lens-pupil" cx="60" cy="60" r="13"></circle>
+              <circle class="lens-spark" cx="52" cy="52" r="3.4"></circle>
+            </svg>
           </div>
           <div class="artboard-foot">
             <span class="artboard-tag">role="img"</span>
@@ -146,48 +118,36 @@
     </div>
   </section>
 
-  <section class="stat-band" aria-label="iconlens at a glance">
-    <div class="wrap">
-      <div class="stat-grid">
-        <div class="stat"><span class="stat-value">8</span><span class="stat-label">structural rules</span></div>
-        <div class="stat"><span class="stat-value">3</span><span class="stat-label">SVG-AAM name sources</span></div>
-        <div class="stat"><span class="stat-value">3</span><span class="stat-label">outputs: text · JSON · SARIF</span></div>
-        <div class="stat"><span class="stat-value">0</span><span class="stat-label">network calls</span></div>
-      </div>
-    </div>
-  </section>
-
   <section class="section" id="gap" aria-labelledby="gap-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">The gap</p>
-        <h2 class="section-title" id="gap-title">Nothing else lints the asset itself.</h2>
-        <p class="section-lede">Design systems and icon libraries ship <code class="code">.svg</code> assets with no accessible name, and the existing tools do not catch it.</p>
+        <h2 class="section-title" id="gap-title">Existing tools do not lint standalone SVG</h2>
+        <p class="section-lede">Design systems and icon libraries ship <code class="code">.svg</code> assets with no accessible name. The tools commonly used for SVG do not catch it.</p>
       </div>
 
       <div class="gap-grid reveal">
         <article class="gap-card">
-          <div class="gap-head"><h3 class="gap-name">svglint</h3><span class="gap-tag">XML linter</span></div>
-          <p class="gap-body">A generic XML and attribute linter. Accessibility only if you hand-write the rules — no accessible-name computation and no dangling-IDREF checks.</p>
+          <h3 class="gap-name">svglint</h3>
+          <p class="gap-body">A generic XML and attribute linter. It checks accessibility only if you hand-write the rules, and it has no accessible-name computation or dangling-IDREF checks.</p>
           <a class="gap-link" href="https://github.com/simple-icons/svglint">github.com/simple-icons/svglint →</a>
         </article>
         <article class="gap-card">
-          <div class="gap-head"><h3 class="gap-name">svgo</h3><span class="gap-tag">optimizer</span></div>
+          <h3 class="gap-name">svgo</h3>
           <p class="gap-body">Actively <strong>removes</strong> <code class="code">&lt;title&gt;</code> and <code class="code">&lt;desc&gt;</code> by default, so its default preset strips the accessible name out of the asset.</p>
           <a class="gap-link" href="https://github.com/svg/svgo">github.com/svg/svgo →</a>
         </article>
         <article class="gap-card">
-          <div class="gap-head"><h3 class="gap-name">axe-core / Pa11y</h3><span class="gap-tag">browser</span></div>
+          <h3 class="gap-name">axe-core / Pa11y</h3>
           <p class="gap-body">Need a live DOM and a browser, so they cannot lint an asset file sitting on disk before it ships.</p>
           <a class="gap-link" href="https://github.com/dequelabs/axe-core">github.com/dequelabs/axe-core →</a>
         </article>
         <article class="gap-card">
-          <div class="gap-head"><h3 class="gap-name">Biome <code class="code">noSvgWithoutTitle</code></h3><span class="gap-tag">one rule</span></div>
+          <h3 class="gap-name">Biome <code class="code">noSvgWithoutTitle</code></h3>
           <p class="gap-body">A single rule that only covers inline HTML or JSX. It never sees a standalone <code class="code">.svg</code> file on its own.</p>
           <a class="gap-link" href="https://biomejs.dev/linter/rules/no-svg-without-title/">biomejs.dev →</a>
         </article>
         <article class="gap-card">
-          <div class="gap-head"><h3 class="gap-name">W3C ACT 7d6734</h3><span class="gap-tag">spec, not a tool</span></div>
+          <h3 class="gap-name">W3C ACT 7d6734</h3>
           <p class="gap-body">Defines the accessible-name test precisely, but ships no implementation you can actually run in CI.</p>
           <a class="gap-link" href="https://www.w3.org/WAI/standards-guidelines/act/rules/7d6734/">w3.org ACT rule 7d6734 →</a>
         </article>
@@ -198,39 +158,32 @@
   <section class="section" id="features" aria-labelledby="features-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Capabilities</p>
-        <h2 class="section-title" id="features-title">Built for icon pipelines.</h2>
-        <p class="section-lede">One small, offline binary that understands SVG accessibility structure — not just XML well-formedness.</p>
+        <h2 class="section-title" id="features-title">What iconlens does</h2>
+        <p class="section-lede">A small offline binary that understands SVG accessibility structure, not just XML well-formedness.</p>
       </div>
 
       <div class="card-grid reveal">
         <article class="card">
-          <span class="card-glyph" aria-hidden="true">name</span>
           <h3 class="card-title">SVG-AAM name computation</h3>
-          <p class="card-body">Resolves <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code> — and stops at the first source that applies, exactly as the spec orders it.</p>
+          <p class="card-body">Resolves <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code>, and stops at the first source that applies, as the spec orders it.</p>
         </article>
         <article class="card">
-          <span class="card-glyph" aria-hidden="true">8 rules</span>
           <h3 class="card-title">Structural rules</h3>
-          <p class="card-body">Missing names, dangling IDREFs, duplicate ids, leftover <code class="code">tabindex</code>, misplaced <code class="code">&lt;title&gt;</code>, and more — with WCAG references on every finding.</p>
+          <p class="card-body">Missing names, dangling IDREFs, duplicate ids, leftover <code class="code">tabindex</code>, misplaced <code class="code">&lt;title&gt;</code>, and more, with a WCAG reference on every finding.</p>
         </article>
         <article class="card">
-          <span class="card-glyph" aria-hidden="true">offline</span>
           <h3 class="card-title">Offline by design</h3>
-          <p class="card-body">No network code, no uploads, no telemetry. Files are parsed locally, so it runs the same on a laptop, in a container, or in air-gapped CI.</p>
+          <p class="card-body">Files are parsed locally, with no network code, uploads, or telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</p>
         </article>
         <article class="card">
-          <span class="card-glyph" aria-hidden="true">cli+api</span>
           <h3 class="card-title">CLI and library</h3>
           <p class="card-body">Lint files or directories from the command line, or call <code class="code">auditSvg</code> directly from TypeScript. The same rules power both.</p>
         </article>
         <article class="card">
-          <span class="card-glyph" aria-hidden="true">sarif</span>
           <h3 class="card-title">SARIF 2.1.0</h3>
           <p class="card-body">Emit a SARIF log so findings surface inline in GitHub code scanning and the Security tab, with severity mapped to SARIF level.</p>
         </article>
         <article class="card">
-          <span class="card-glyph" aria-hidden="true">exit 1</span>
           <h3 class="card-title">CI gate</h3>
           <p class="card-body">Exits <code class="code">1</code> on any error-severity issue, <code class="code">0</code> otherwise, and <code class="code">2</code> on bad usage. <code class="code">--fail-on</code> tightens or loosens the threshold.</p>
         </article>
@@ -241,9 +194,8 @@
   <section class="section" id="how" aria-labelledby="how-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">How it works</p>
-        <h2 class="section-title" id="how-title">Parse, compute, rule, report.</h2>
-        <p class="section-lede">A short, static pipeline with no rendering step and no hidden state.</p>
+        <h2 class="section-title" id="how-title">How a file is checked</h2>
+        <p class="section-lede">The pipeline is static and has no rendering step.</p>
       </div>
       <ol class="steps reveal">
         <li class="step">
@@ -273,9 +225,8 @@
   <section class="section" id="rules" aria-labelledby="rules-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">The rules</p>
-        <h2 class="section-title" id="rules-title">Eight rules, each with a reference.</h2>
-        <p class="section-lede">The accessible-name computation is the core; the rules describe exactly what breaks a standalone graphic.</p>
+        <h2 class="section-title" id="rules-title">The eight rules</h2>
+        <p class="section-lede">Accessible-name computation is the core. Each rule describes a specific way a standalone graphic breaks.</p>
       </div>
 
       <h3 class="section-title" id="name-priority">Accessible-name priority (SVG-AAM)</h3>
@@ -342,23 +293,28 @@
   <section class="section" id="install" aria-labelledby="install-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Install</p>
-        <h2 class="section-title" id="install-title">One dependency, one binary.</h2>
-        <p class="section-lede">Add it as a dev dependency and run the <code class="code">iconlens</code> binary, or invoke it once with <code class="code">bunx</code> without touching your manifest.</p>
+        <h2 class="section-title" id="install-title">Install</h2>
+        <p class="section-lede">iconlens is not published to npm. Install it with the one-line script, or run it without installing.</p>
       </div>
-      <pre class="code"><code># Add to a project
-bun add -d iconlens
+      <pre class="code"><code># One-line install (installs the `iconlens` binary)
+curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh
 
-# Or run once
-bunx iconlens icons/*.svg</code></pre>
+# Or run once, without installing
+bunx github:srivtx/iconlens icons/*.svg
+
+# Install globally
+bun add -g github:srivtx/iconlens
+iconlens icons/*.svg
+
+# Add to a project as a dev dependency
+bun add -d github:srivtx/iconlens</code></pre>
     </div>
   </section>
 
   <section class="section" id="usage" aria-labelledby="usage-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Reference</p>
-        <h2 class="section-title" id="usage-title">CLI and library usage.</h2>
+        <h2 class="section-title" id="usage-title">CLI and library usage</h2>
         <p class="section-lede">The same rule set runs from the command line or from TypeScript.</p>
       </div>
 
@@ -407,8 +363,7 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
   <section class="section" id="ci" aria-labelledby="ci-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Continuous integration</p>
-        <h2 class="section-title" id="ci-title">SARIF and GitHub code scanning.</h2>
+        <h2 class="section-title" id="ci-title">SARIF and GitHub code scanning</h2>
         <p class="section-lede">Emit a SARIF 2.1.0 log and let GitHub code scanning annotate the pull request.</p>
       </div>
       <pre class="code"><code>- name: Icon accessibility scan
@@ -428,11 +383,10 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
   <section class="section" id="limitations" aria-labelledby="limitations-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Honest scope</p>
-        <h2 class="section-title" id="limitations-title">Limitations.</h2>
+        <h2 class="section-title" id="limitations-title">Limitations</h2>
       </div>
       <div class="callout callout-warn reveal" role="note">
-        <h3 class="callout-title">Static analysis, by design</h3>
+        <h3 class="callout-title">Static analysis</h3>
         <p>iconlens is static file analysis. It does not render the graphic, so it cannot compute colour contrast. Name computation follows the SVG-AAM priority order but does not implement every edge of the full specification. Inline SVG in HTML or JSX is out of scope.</p>
       </div>
     </div>
@@ -441,13 +395,12 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
   <section class="section" id="faq" aria-labelledby="faq-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Questions</p>
-        <h2 class="section-title" id="faq-title">FAQ.</h2>
+        <h2 class="section-title" id="faq-title">FAQ</h2>
       </div>
       <div class="faq-list reveal">
         <details class="faq-item">
           <summary class="faq-q">Does it need a browser or a network?</summary>
-          <div class="faq-a"><p>No. iconlens parses files locally with no network code, no uploads, and no telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</p></div>
+          <div class="faq-a"><p>No. iconlens parses files locally, with no network code, uploads, or telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</p></div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">How is the accessible name computed?</summary>
@@ -455,11 +408,11 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Can it check inline SVG in HTML or JSX?</summary>
-          <div class="faq-a"><p>No. iconlens targets standalone <code class="code">.svg</code> assets on disk. Inline SVG in markup is out of scope — use an HTML/JSX linter for that.</p></div>
+          <div class="faq-a"><p>No. iconlens targets standalone <code class="code">.svg</code> assets on disk. Inline SVG in markup is out of scope; use an HTML or JSX linter for that.</p></div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Does it replace axe-core or Pa11y?</summary>
-          <div class="faq-a"><p>No — it complements them. Browser engines test a rendered DOM; iconlens tests the asset before it ever reaches the DOM, which is exactly the gap they cannot cover.</p></div>
+          <div class="faq-a"><p>No. It complements them. Browser engines test a rendered DOM; iconlens tests the asset before it reaches the DOM, which is the gap they cannot cover.</p></div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">How do I fail CI on warnings too?</summary>
@@ -476,9 +429,8 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
   <section class="section" id="playground" aria-labelledby="playground-title">
     <div class="wrap">
       <div class="section-head reveal">
-        <p class="section-kicker">Live, in your browser</p>
-        <h2 class="section-title" id="playground-title">Try iconlens.</h2>
-        <p class="section-lede">Paste SVG markup or drop a <code class="code">.svg</code> file. Everything runs in your browser — nothing is uploaded.</p>
+        <h2 class="section-title" id="playground-title">Try iconlens</h2>
+        <p class="section-lede">Paste SVG markup or drop a <code class="code">.svg</code> file. Everything runs in your browser; nothing is uploaded.</p>
       </div>
 
       <div class="playground reveal">
