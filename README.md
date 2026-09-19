@@ -66,7 +66,7 @@ screen reader would and flags the structural failures that break standalone SVG.
 curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh
 
 # Or run once, without installing
-bunx github:srivtx/iconlens icons/*.svg
+bunx github:srivtx/iconlens#main icons/*.svg
 
 # Install globally
 bun add -g github:srivtx/iconlens
