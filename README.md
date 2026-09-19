@@ -16,6 +16,8 @@
 
 ---
 
+**Live site:** [iconlens](https://lens-site-srivtx.vercel.app/iconlens.html)  ·  **Playground:** [https://lens-site-srivtx.vercel.app/playground](https://lens-site-srivtx.vercel.app/playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
+
 ## The problem
 
 Design systems and icon libraries ship `.svg` assets that have no accessible
