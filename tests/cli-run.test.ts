@@ -1,11 +1,11 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs, run } from "../src/cli.ts";
+import { MAX_INPUT_BYTES, parseArgs, run } from "../src/cli.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const CLI = join(ROOT, "src", "cli.ts");
@@ -81,6 +81,25 @@ describe("parseArgs", () => {
     expect(opts.version).toBe(true);
     expect(opts.quiet).toBe(true);
   });
+
+  test("-- ends option parsing so dash-prefixed files are accepted", () => {
+    const opts = parseArgs(["--", "-foo.svg", "--not-a-flag"]);
+    expect(opts.files).toEqual(["-foo.svg", "--not-a-flag"]);
+  });
+
+  test("a dash-prefixed file without -- is still an unknown option", () => {
+    expect(() => parseArgs(["-foo.svg"])).toThrow(/^unknown option -foo\.svg$/);
+  });
+
+  test("rejects an unknown long option with the exact message", () => {
+    expect(() => parseArgs(["--x"])).toThrow(/^unknown option --x$/);
+  });
+
+  test("rejects an empty inline value for every value flag", () => {
+    expect(() => parseArgs(["--dir="])).toThrow(/--dir/);
+    expect(() => parseArgs(["--sarif="])).toThrow(/--sarif/);
+    expect(() => parseArgs(["--fail-on="])).toThrow(/--fail-on/);
+  });
 });
 
 describe("run exit codes", () => {
@@ -113,9 +132,9 @@ describe("run exit codes", () => {
     });
   });
 
-  test("a missing file exits 2", async () => {
+  test("a missing file exits 3 (I/O)", async () => {
     const missing = join(tmpdir(), `iconlens-missing-${Date.now()}.svg`);
-    expect(await silence(() => run([missing]))).toBe(2);
+    expect(await silence(() => run([missing]))).toBe(3);
   });
 
   test("malformed XML exits 2 instead of reporting clean", async () => {
@@ -130,14 +149,14 @@ describe("run exit codes", () => {
     });
   });
 
-  test("--dir on a missing directory exits 2", async () => {
+  test("--dir on a missing directory exits 3 (I/O)", async () => {
     const missing = join(tmpdir(), `iconlens-no-dir-${Date.now()}`);
-    expect(await silence(() => run(["--dir", missing]))).toBe(2);
+    expect(await silence(() => run(["--dir", missing]))).toBe(3);
   });
 
-  test("--dir on a file exits 2", async () => {
+  test("--dir on a file exits 3 (I/O)", async () => {
     await withTempFile("clean.svg", CLEAN, async (path) => {
-      expect(await silence(() => run(["--dir", path]))).toBe(2);
+      expect(await silence(() => run(["--dir", path]))).toBe(3);
     });
   });
 
@@ -151,14 +170,26 @@ describe("run exit codes", () => {
     }
   });
 
-  test("an unwritable --sarif report exits 2", async () => {
+  test("an unwritable --sarif report exits 3 (I/O)", async () => {
     const dir = tempDir();
     try {
       const clean = join(dir, "clean.svg");
       writeFileSync(clean, CLEAN);
       const blocker = join(dir, "not-a-directory");
       writeFileSync(blocker, "file");
-      expect(await silence(() => run([clean, "--sarif", join(blocker, "report.sarif")]))).toBe(2);
+      expect(await silence(() => run([clean, "--sarif", join(blocker, "report.sarif")]))).toBe(3);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("an oversized file exits 2 with SVG-PARSE-000", async () => {
+    const dir = tempDir();
+    try {
+      const huge = join(dir, "huge.svg");
+      writeFileSync(huge, Buffer.alloc(MAX_INPUT_BYTES + 1, 0x20));
+      const code = await silence(() => run([huge]));
+      expect(code).toBe(2);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -219,5 +250,75 @@ describe("cli process", () => {
     });
     expect(garbage.status).toBe(2);
     expect(garbage.stdout).toContain("<stdin>");
+  });
+
+  test("unknown option prints the exact message and exits 2", () => {
+    const proc = spawnSync("bun", ["run", CLI, "--x"], { cwd: ROOT, encoding: "utf8" });
+    expect(proc.status).toBe(2);
+    expect(proc.stderr).toContain("iconlens: unknown option --x");
+    expect(proc.stderr).toContain("Usage:");
+  });
+
+  test("--version prints exactly the package version", () => {
+    const version = (JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as {
+      version: string;
+    }).version;
+    const proc = spawnSync("bun", ["run", CLI, "--version"], { cwd: ROOT, encoding: "utf8" });
+    expect(proc.status).toBe(0);
+    expect(proc.stdout).toBe(`${version}\n`);
+  });
+
+  test("--help documents all four exit codes", () => {
+    const proc = spawnSync("bun", ["run", CLI, "--help"], { cwd: ROOT, encoding: "utf8" });
+    expect(proc.status).toBe(0);
+    expect(proc.stdout).toContain("Exit codes:");
+    for (const code of ["0", "1", "2", "3"]) {
+      expect(proc.stdout).toMatch(new RegExp(`^\\s*${code}\\s`, "m"));
+    }
+  });
+
+  test("-- lets a dash-prefixed filename through", () => {
+    const dir = tempDir();
+    try {
+      writeFileSync(join(dir, "-foo.svg"), CLEAN);
+      const proc = spawnSync("bun", ["run", CLI, "--", "--", "-foo.svg"], {
+        cwd: dir,
+        encoding: "utf8",
+      });
+      expect(proc.status).toBe(0);
+      expect(proc.stdout).toContain("-foo.svg");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("an oversized file exits 2 with a fatal SVG-PARSE-000 error", () => {
+    const dir = tempDir();
+    try {
+      const huge = join(dir, "huge.svg");
+      writeFileSync(huge, Buffer.alloc(MAX_INPUT_BYTES + 1, 0x20));
+      const proc = spawnSync("bun", ["run", CLI, huge], {
+        cwd: ROOT,
+        encoding: "utf8",
+        maxBuffer: 32 * 1024 * 1024,
+      });
+      expect(proc.status).toBe(2);
+      expect(proc.stdout).toContain("SVG-PARSE-000");
+      expect(proc.stdout).toContain("exceeds");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("oversized stdin exits 2 with a fatal SVG-PARSE-000 error", () => {
+    const proc = spawnSync("bun", ["run", CLI, "-"], {
+      cwd: ROOT,
+      input: Buffer.alloc(MAX_INPUT_BYTES + 1, 0x20),
+      encoding: "utf8",
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    expect(proc.status).toBe(2);
+    expect(proc.stdout).toContain("SVG-PARSE-000");
+    expect(proc.stdout).toContain("<stdin>");
   });
 });

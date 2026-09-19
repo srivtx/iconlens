@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { auditSvg } from "./audit.ts";
+import { auditFailure, auditSvg } from "./audit.ts";
 import { formatJson, formatText } from "./report.ts";
 import { writeSarif } from "./sarif.ts";
 import { PARSE_ERROR_CODE, type AuditResult, type Severity } from "./types.ts";
@@ -34,6 +34,12 @@ function readVersion(): string {
 
 const VERSION = readVersion();
 
+export const MAX_INPUT_BYTES = 16 * 1024 * 1024;
+
+export function oversizeMessage(size: number): string {
+  return `Input is ${size} bytes, which exceeds the ${MAX_INPUT_BYTES}-byte (16 MiB) limit; input was not parsed.`;
+}
+
 const USAGE = `iconlens - offline accessibility linter for standalone SVG files
 
 Usage:
@@ -50,13 +56,22 @@ Options:
                           error (default), warning, info, none
   -h, --help              Show this help
   -v, --version           Print the version
+  --                      End of options; treat the remaining arguments as files
+                          (use this to lint a file whose name starts with "-")
 
 Reads standard input when a <file> is "-" (reported as <stdin>).
+
+Input size:
+  Inputs larger than ${MAX_INPUT_BYTES} bytes (16 MiB) are rejected with an
+  SVG-PARSE-000 error, for both files and standard input.
 
 Exit codes:
   0  no issues at or above --fail-on
   1  at least one issue at or above --fail-on
-  2  invalid usage, unreadable input, or input that is not a well-formed SVG
+  2  invalid usage, input over the size limit, or input that is not a
+     well-formed SVG document
+  3  I/O error (an input file could not be read, or the report could not be
+     written)
 `;
 
 export function parseArgs(argv: string[]): Options {
@@ -70,10 +85,17 @@ export function parseArgs(argv: string[]): Options {
     failOn: "error",
     files: [],
   };
+  let endOfOptions = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === undefined) continue;
-    if (arg === "--json") {
+    if (endOfOptions) {
+      opts.files.push(arg);
+      continue;
+    }
+    if (arg === "--") {
+      endOfOptions = true;
+    } else if (arg === "--json") {
       opts.json = true;
     } else if (arg === "--quiet" || arg === "-q") {
       opts.quiet = true;
@@ -105,7 +127,7 @@ export function parseArgs(argv: string[]): Options {
     } else if (arg === "-") {
       opts.files.push(arg);
     } else if (arg.startsWith("-")) {
-      throw new Error(`Unknown option: ${arg}`);
+      throw new Error(`unknown option ${arg}`);
     } else {
       opts.files.push(arg);
     }
@@ -145,6 +167,37 @@ function exceedsFailOn(counts: Record<Severity, number>, failOn: FailOn): boolea
   }
 }
 
+async function readStdinCapped(maxBytes: number): Promise<{ text: string; size: number }> {
+  const reader = Bun.stdin.stream().getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value === undefined) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        chunks.length = 0;
+        try {
+          await reader.cancel();
+        } catch {
+          void 0;
+        }
+        return { text: "", size: total };
+      }
+      chunks.push(value);
+    }
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {
+      void 0;
+    }
+  }
+  return { text: Buffer.concat(chunks, total).toString("utf8"), size: total };
+}
+
 export async function run(argv: string[]): Promise<number> {
   let opts: Options;
   try {
@@ -170,7 +223,7 @@ export async function run(argv: string[]): Promise<number> {
     files = collectFiles(opts);
   } catch (err) {
     console.error(`iconlens: ${err instanceof Error ? err.message : String(err)}`);
-    return 2;
+    return 3;
   }
 
   if (files.length === 0) {
@@ -184,40 +237,68 @@ export async function run(argv: string[]): Promise<number> {
   }
 
   let failed = false;
-  let inputFailure = false;
+  let parseFailure = false;
+  let ioFailure = false;
   const results: AuditResult[] = [];
 
   for (const file of files) {
-    let text: string;
-    let displayName: string;
+    const displayName = file === "-" ? "<stdin>" : basename(file);
+    let text: string | undefined;
+    let result: AuditResult | undefined;
+
     if (file === "-") {
-      displayName = "<stdin>";
       try {
-        text = await Bun.stdin.text();
+        const stdin = await readStdinCapped(MAX_INPUT_BYTES);
+        if (stdin.size > MAX_INPUT_BYTES) {
+          result = auditFailure(displayName, oversizeMessage(stdin.size));
+        } else {
+          text = stdin.text;
+        }
       } catch (err) {
         console.error(
           `iconlens: cannot read <stdin>: ${err instanceof Error ? err.message : String(err)}`,
         );
-        inputFailure = true;
+        ioFailure = true;
         continue;
       }
     } else {
-      displayName = basename(file);
+      let size: number;
       try {
-        text = await Bun.file(file).text();
+        size = statSync(file).size;
       } catch (err) {
         console.error(
           `iconlens: cannot read ${file}: ${err instanceof Error ? err.message : String(err)}`,
         );
-        inputFailure = true;
+        ioFailure = true;
         continue;
+      }
+      if (size > MAX_INPUT_BYTES) {
+        result = auditFailure(displayName, oversizeMessage(size));
+      } else {
+        try {
+          text = await Bun.file(file).text();
+        } catch (err) {
+          console.error(
+            `iconlens: cannot read ${file}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          ioFailure = true;
+          continue;
+        }
+        const bytes = Buffer.byteLength(text, "utf8");
+        if (bytes > MAX_INPUT_BYTES) {
+          text = undefined;
+          result = auditFailure(displayName, oversizeMessage(bytes));
+        }
       }
     }
 
-    const result = auditSvg(text, displayName);
+    if (result === undefined) {
+      result = auditSvg(text ?? "", displayName);
+    }
+
     results.push(result);
     if (result.issues.some((issue) => issue.code === PARSE_ERROR_CODE)) {
-      inputFailure = true;
+      parseFailure = true;
     }
     if (exceedsFailOn(result.counts, opts.failOn)) {
       failed = true;
@@ -246,11 +327,12 @@ export async function run(argv: string[]): Promise<number> {
       console.error(
         `iconlens: cannot write SARIF report to ${opts.sarif}: ${err instanceof Error ? err.message : String(err)}`,
       );
-      return 2;
+      return 3;
     }
   }
 
-  if (inputFailure) return 2;
+  if (parseFailure) return 2;
+  if (ioFailure) return 3;
   return failed ? 1 : 0;
 }
 

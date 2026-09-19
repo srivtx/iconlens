@@ -1,5 +1,5 @@
 import { PARSE_ERROR_CODE, type AuditResult, type Issue, type Severity } from "./types";
-import { parseSvg } from "./svg";
+import { parseSvg, type ParsedSvg } from "./svg";
 import { runRules } from "./rules";
 
 function countIssues(issues: Issue[]): Record<Severity, number> {
@@ -10,27 +10,41 @@ function countIssues(issues: Issue[]): Record<Severity, number> {
   return counts;
 }
 
-export function auditSvg(source: string, file = "image.svg"): AuditResult {
+export type RuleRunner = (parsed: ParsedSvg, location: string) => Issue[];
+
+export function auditFailure(file: string, message: string): AuditResult {
+  const issues: Issue[] = [
+    {
+      code: PARSE_ERROR_CODE,
+      severity: "error",
+      message,
+      location: file,
+      file,
+    },
+  ];
+  return { file, issues, counts: countIssues(issues) };
+}
+
+export function auditSvg(
+  source: string,
+  file = "image.svg",
+  ruleRunner: RuleRunner = runRules,
+): AuditResult {
   const parsed = parseSvg(source);
 
   if (parsed.error !== null) {
-    const issues: Issue[] = [
-      {
-        code: PARSE_ERROR_CODE,
-        severity: "error",
-        message: parsed.error,
-        location: file,
-        file,
-      },
-    ];
-    return { file, issues, counts: countIssues(issues) };
+    return auditFailure(file, parsed.error);
   }
 
-  let issues: Issue[] = [];
+  let issues: Issue[];
   try {
-    issues = runRules(parsed, file);
-  } catch {
-    issues = [];
+    issues = ruleRunner(parsed, file);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    return auditFailure(
+      file,
+      `Internal error while auditing: ${detail}. Input was not analysed; this is not a clean result.`,
+    );
   }
 
   return { file, issues, counts: countIssues(issues) };

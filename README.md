@@ -11,7 +11,7 @@
 [![license](https://img.shields.io/badge/license-MIT-0f766e)](LICENSE)
 [![runtime](https://img.shields.io/badge/runtime-Bun-14151A?logo=bun&logoColor=white)](https://bun.sh)
 [![types](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
-[![tests](https://img.shields.io/badge/tests-55-0f766e)](#testing)
+[![tests](https://img.shields.io/badge/tests-67-0f766e)](#testing)
 [![network](https://img.shields.io/badge/network-none-0f766e)](#privacy)
 
 </div>
@@ -103,7 +103,15 @@ cat logo.svg | iconlens -
 
 # Write a SARIF report and tighten the failure threshold
 iconlens --dir icons/ --sarif iconlens.sarif --fail-on warning
+
+# Lint a file whose name starts with a dash ("--" ends option parsing)
+iconlens -- -weird-name.svg
 ```
+
+Every option that takes a value (`--dir`, `--sarif`, `--fail-on`) accepts both
+`--flag value` and `--flag=value`, and exits `2` when the value is missing.
+Unknown options are rejected with `iconlens: unknown option <flag>`, the usage
+text, and exit code `2`.
 
 Exit codes:
 
@@ -111,10 +119,18 @@ Exit codes:
 |---|---|
 | `0` | No issues at or above `--fail-on` |
 | `1` | At least one issue at or above `--fail-on` |
-| `2` | Invalid usage, unreadable input, or input that is not a well-formed SVG |
+| `2` | Invalid usage, input over the size limit, or input that is not a well-formed SVG |
+| `3` | I/O error: an input file could not be read, or the report could not be written |
 
 A malformed or non-`<svg>` file is **never** reported as clean: it produces an
 `SVG-PARSE-000` error and exit code `2`, so a CI gate cannot pass on garbage.
+
+### Input size limit
+
+An input larger than **16 MiB (16,777,216 bytes)** is rejected before parsing,
+for both files and standard input, with an `SVG-PARSE-000` error and exit code
+`2`. The limit bounds the memory an untrusted document can consume; it is the
+documented cap that `SECURITY.md` refers to.
 
 ### Library
 
@@ -209,14 +225,16 @@ included in SARIF output.
 
 | Gate | Result |
 |---|---|
-| `bun test` | 55 tests |
+| `bun test` | 67 tests |
 | `bunx tsc --noEmit` | clean (strict) |
 | fixtures | `bun run make-fixtures` writes a clean and a broken SVG |
 
-Tests cover the good/bad fixtures, CLI exit codes (including malformed and
-non-SVG input), `--sarif`/`--fail-on` argument validation, focus, dangling
-`aria-labelledby`/`aria-describedby`/`<use>` references, duplicate ids, and the
-name-priority order (`aria-labelledby` beats `title`).
+Tests cover the good/bad fixtures, CLI exit codes (including malformed,
+non-SVG, and oversized input), `--` end-of-options and unknown-option handling,
+`--flag=value` parsing, `--sarif`/`--fail-on` argument validation, the input
+size cap for files and stdin, the no-silent-clean guard around the rule runner,
+focus, dangling `aria-labelledby`/`aria-describedby`/`<use>` references,
+duplicate ids, and the name-priority order (`aria-labelledby` beats `title`).
 
 ## Privacy
 

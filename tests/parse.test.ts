@@ -45,4 +45,19 @@ describe("parse failure detection", () => {
     );
     expect(result.issues.map((issue) => issue.code)).toContain("SVG-NAME-001");
   });
+
+  test("an unexpected rule-runner throw is never reported as clean", () => {
+    const result = auditSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ok"><title>ok</title></svg>',
+      "boom.svg",
+      () => {
+        throw new Error("boom");
+      },
+    );
+    expect(result.counts.error).toBe(1);
+    expect(result.issues).toHaveLength(1);
+    expect(result.issues[0]!.code).toBe(PARSE_ERROR_CODE);
+    expect(result.issues[0]!.message).toContain("Internal error");
+    expect(result.issues[0]!.file).toBe("boom.svg");
+  });
 });

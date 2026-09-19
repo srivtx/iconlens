@@ -29,10 +29,31 @@ backports.
   loading external entities or resolving remote DTDs, and a malformed, deeply
   nested, or oversized document must fail safely rather than exhaust the
   process.
+- **Bounded input.** An input larger than **16 MiB (16,777,216 bytes)** is
+  rejected *before* parsing, for both files and standard input. The file size
+  is checked with `stat` and standard input is streamed through a capped
+  reader, so an oversized document is never read fully into memory. The CLI
+  prints an `SVG-PARSE-000` error and exits `2`.
 - **No rendering or execution.** iconlens does not run scripts, fetch linked
   resources, or rasterize the image; it only reads the markup.
 - **No code execution from input.** `<script>`, event handlers, and external
   hrefs in an asset are never evaluated or followed.
+
+## Resource limits and exit codes
+
+The maximum accepted input is **16 MiB (16,777,216 bytes)**; anything larger
+produces an `SVG-PARSE-000` error and does not reach the XML parser. The CLI's
+exit codes are:
+
+| Code | Meaning |
+| --- | --- |
+| `0` | No issues at or above `--fail-on` |
+| `1` | At least one issue at or above `--fail-on` |
+| `2` | Invalid usage, input over the 16 MiB limit, or input that is not a well-formed SVG |
+| `3` | I/O error: an input file could not be read, or the report could not be written |
+
+An unexpected failure inside the rule engine is surfaced as an `SVG-PARSE-000`
+internal error (exit `2`); it is never reported as a clean result.
 
 ## Reporting a vulnerability
 
