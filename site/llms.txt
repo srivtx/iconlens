@@ -1,0 +1,18 @@
+# iconlens
+
+> Offline accessibility lint for standalone SVG files.
+
+iconlens reads a standalone `.svg` file and computes the accessible name a screen reader would use, then reports the structural failures that remove it: missing alt text, dangling `aria-labelledby` references, and bad focus order. It lints the asset itself, with no browser and no live DOM.
+
+It runs entirely offline, with no network calls and no telemetry, and can read from standard input. Output is human-readable text, stable JSON (one object for a single file, an array for many), and SARIF 2.1.0 for code scanning. Exit codes are `0` (no findings at or above `--fail-on`), `1` (findings), `2` (invalid usage or an input that is not well-formed SVG), and `3` (I/O error).
+
+## Docs
+- [Overview](https://iconlens-srivtx.vercel.app/): Catch inaccessible SVG before it ships, with an in-browser playground.
+- [Rules](https://iconlens-srivtx.vercel.app/rules): The eight rules and how the accessible name of a standalone SVG is computed.
+- [Usage](https://iconlens-srivtx.vercel.app/usage): CLI flags, exit codes, JSON output, and the TypeScript library API.
+- [CI](https://iconlens-srivtx.vercel.app/ci): SARIF 2.1.0 output for GitHub code scanning and an exit-code gate for pull requests.
+- [FAQ](https://iconlens-srivtx.vercel.app/faq): Scope, limitations, and comparisons to svglint, svgo, Biome, axe-core, and the W3C ACT rule.
+
+## Optional
+- [Source](https://github.com/srivtx/iconlens): TypeScript implementation, tests, and issue tracker.
+- [Install script](https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh): One-line install of the `iconlens` binary.
