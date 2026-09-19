@@ -11,7 +11,7 @@
 [![license](https://img.shields.io/badge/license-MIT-0f766e)](LICENSE)
 [![runtime](https://img.shields.io/badge/runtime-Bun-14151A?logo=bun&logoColor=white)](https://bun.sh)
 [![types](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
-[![tests](https://img.shields.io/badge/tests-10-0f766e)](#testing)
+[![tests](https://img.shields.io/badge/tests-55-0f766e)](#testing)
 [![network](https://img.shields.io/badge/network-none-0f766e)](#privacy)
 
 </div>
@@ -89,18 +89,32 @@ bun run src/cli.ts fixtures/bad.svg
 # Lint files
 iconlens icons/*.svg
 
-# Lint a directory
+# Lint a directory (non-recursive, sorted)
 iconlens --dir icons/
 
-# Machine-readable
+# Machine-readable (one object for a single file, a JSON array for many)
 iconlens logo.svg --json
 
 # Summary only
 iconlens logo.svg --quiet
+
+# Lint standard input
+cat logo.svg | iconlens -
+
+# Write a SARIF report and tighten the failure threshold
+iconlens --dir icons/ --sarif iconlens.sarif --fail-on warning
 ```
 
-Exit code is `1` on any error-severity issue, `0` otherwise, `2` with no
-arguments.
+Exit codes:
+
+| Code | Meaning |
+|---|---|
+| `0` | No issues at or above `--fail-on` |
+| `1` | At least one issue at or above `--fail-on` |
+| `2` | Invalid usage, unreadable input, or input that is not a well-formed SVG |
+
+A malformed or non-`<svg>` file is **never** reported as clean: it produces an
+`SVG-PARSE-000` error and exit code `2`, so a CI gate cannot pass on garbage.
 
 ### Library
 
@@ -116,6 +130,7 @@ const name = accessibleName(parseSvg(source));
 
 | Code | Severity | WCAG | Check |
 |---|---|---|---|
+| SVG-PARSE-000 | error | — | Input is not a well-formed `<svg>` document |
 | SVG-NAME-001 | error | 4.1.2 | `role="img"` with no accessible name |
 | SVG-NAME-002 | error | 4.1.2 | `aria-labelledby` references a missing id |
 | SVG-DECOR-003 | warning | 1.1.1 | No role, no name, not marked decorative |
@@ -123,7 +138,8 @@ const name = accessibleName(parseSvg(source));
 | SVG-DESC-005 | info | 1.1.1 | Named graphic without a `<desc>` |
 | SVG-ID-006 | error | — | Duplicate `id` attributes |
 | SVG-USE-007 | warning | — | `<use>` points at an id that does not exist |
-| SVG-FOCUS-008 | warning | 2.4.3 | `tabindex` on a non-interactive element |
+| SVG-FOCUS-008 | warning | 2.4.3 | `tabindex` (non-negative) on a non-interactive element |
+| SVG-REF-009 | error | 4.1.2 | `aria-describedby` references a missing id |
 
 ## Accessible-name computation
 
@@ -193,12 +209,14 @@ included in SARIF output.
 
 | Gate | Result |
 |---|---|
-| `bun test` | 10 tests |
+| `bun test` | 55 tests |
 | `bunx tsc --noEmit` | clean (strict) |
 | fixtures | `bun run make-fixtures` writes a clean and a broken SVG |
 
-Tests cover the good/bad fixtures and assert the name-priority order
-(`aria-labelledby` beats `title`).
+Tests cover the good/bad fixtures, CLI exit codes (including malformed and
+non-SVG input), `--sarif`/`--fail-on` argument validation, focus, dangling
+`aria-labelledby`/`aria-describedby`/`<use>` references, duplicate ids, and the
+name-priority order (`aria-labelledby` beats `title`).
 
 ## Privacy
 

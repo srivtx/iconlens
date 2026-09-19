@@ -65,7 +65,7 @@ function toResult(issue: Issue): SarifResult {
     locations: [
       {
         physicalLocation: {
-          artifactLocation: { uri: issue.location },
+          artifactLocation: { uri: issue.file ?? issue.location },
           region: { startLine: 1 },
         },
       },

@@ -74,14 +74,15 @@
   var nav = document.getElementById("site-nav");
 
   function closeNav() {
-    if (nav) nav.classList.remove("is-open");
+    if (nav) nav.setAttribute("data-open", "false");
     if (navToggle) navToggle.setAttribute("aria-expanded", "false");
   }
 
   if (navToggle && nav) {
     navToggle.addEventListener("click", function () {
-      var open = nav.classList.toggle("is-open");
-      navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      var open = nav.getAttribute("data-open") === "true";
+      nav.setAttribute("data-open", open ? "false" : "true");
+      navToggle.setAttribute("aria-expanded", open ? "false" : "true");
     });
 
     nav.addEventListener("click", function (event) {
@@ -92,32 +93,6 @@
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") closeNav();
     });
-  }
-
-  /* ----- Nav shadow on scroll ------------------------------------------- */
-  var header = document.querySelector(".site-header");
-  var ticking = false;
-
-  function syncHeader() {
-    if (!header) return;
-    if (window.scrollY > 8) header.classList.add("is-scrolled");
-    else header.classList.remove("is-scrolled");
-  }
-
-  if (header) {
-    syncHeader();
-    window.addEventListener(
-      "scroll",
-      function () {
-        if (ticking) return;
-        ticking = true;
-        window.requestAnimationFrame(function () {
-          ticking = false;
-          syncHeader();
-        });
-      },
-      { passive: true }
-    );
   }
 
   /* ----- Copy to clipboard ---------------------------------------------- */
@@ -183,13 +158,13 @@
 
   function enhanceCodeBlocks() {
     each(document.querySelectorAll("pre.code"), function (pre) {
-      if (pre.querySelector(".code-copy")) return;
+      if (pre.querySelector(".code__copy")) return;
       var code = pre.querySelector("code") || pre;
       var text = code.textContent;
 
       var button = document.createElement("button");
       button.type = "button";
-      button.className = "code-copy";
+      button.className = "copy code__copy";
       button.textContent = "Copy";
       button.setAttribute("aria-label", "Copy code to clipboard");
 

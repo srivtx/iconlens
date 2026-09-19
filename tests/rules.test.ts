@@ -68,3 +68,57 @@ describe("accessibleName priority", () => {
     expect(name.name).toBe("Title only");
   });
 });
+
+describe("rule edge cases", () => {
+  test('aria-hidden="false" does not suppress SVG-DECOR-003', () => {
+    const result = auditSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="false"><rect width="1" height="1"/></svg>',
+      "x.svg",
+    );
+    expect(result.issues.map((issue) => issue.code)).toContain("SVG-DECOR-003");
+  });
+
+  test('aria-hidden="true" marks the graphic decorative', () => {
+    const result = auditSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="1" height="1"/></svg>',
+      "x.svg",
+    );
+    const codes = result.issues.map((issue) => issue.code);
+    expect(codes).not.toContain("SVG-DECOR-003");
+    expect(codes).not.toContain("SVG-NAME-001");
+  });
+
+  test("dangling aria-describedby references are errors", () => {
+    const result = auditSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="x" aria-describedby="gone"></svg>',
+      "x.svg",
+    );
+    const issue = result.issues.find((candidate) => candidate.code === "SVG-REF-009");
+    expect(issue).toBeDefined();
+    expect(issue!.severity).toBe("error");
+  });
+
+  test('tabindex="-1" is not a focus-order violation', () => {
+    const result = auditSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="x"><g tabindex="-1"><rect width="1" height="1"/></g></svg>',
+      "x.svg",
+    );
+    expect(result.issues.map((issue) => issue.code)).not.toContain("SVG-FOCUS-008");
+  });
+
+  test('tabindex="0" on a non-interactive element is flagged', () => {
+    const result = auditSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="x"><g tabindex="0"><rect width="1" height="1"/></g></svg>',
+      "x.svg",
+    );
+    expect(result.issues.map((issue) => issue.code)).toContain("SVG-FOCUS-008");
+  });
+
+  test("issues carry the plain file path alongside the annotated location", () => {
+    const result = auditSvg(BAD_SVG, "bad.svg");
+    for (const issue of result.issues) {
+      expect(issue.file).toBe("bad.svg");
+    }
+  });
+});
+

@@ -3,7 +3,11 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const siteRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const stylesPath = join(siteRoot, "site", "assets", "styles.css");
+const siteDir = join(siteRoot, "site");
+const stylesheets = [
+  join(siteDir, "assets", "lens.css"),
+  join(siteDir, "assets", "theme.css"),
+];
 const problems = [];
 
 function rel(path) {
@@ -14,16 +18,27 @@ function report(where, message) {
   problems.push(`${where}: ${message}`);
 }
 
-if (!existsSync(stylesPath)) {
-  report("site/assets/styles.css", "stylesheet is missing");
+/*
+ * Collect every class defined in lens.css and theme.css. The design system is
+ * shared, so the page may only use classes those two files already define.
+ */
+const definedClasses = new Set();
+const loadedStylesheets = [];
+
+for (const stylesheet of stylesheets) {
+  const name = rel(stylesheet);
+  if (!existsSync(stylesheet)) {
+    report(name, "stylesheet is missing");
+    continue;
+  }
+  loadedStylesheets.push(name);
+  const css = readFileSync(stylesheet, "utf8");
+  for (const match of css.matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)/g)) {
+    definedClasses.add(match[1]);
+  }
 }
 
-const css = existsSync(stylesPath) ? readFileSync(stylesPath, "utf8") : "";
-const definedClasses = new Set(
-  [...css.matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)/g)].map((match) => match[1]),
-);
-
-const htmlFiles = readdirSync(join(siteRoot, "site"))
+const htmlFiles = readdirSync(siteDir)
   .filter((name) => name.endsWith(".html"))
   .sort();
 
@@ -44,7 +59,7 @@ function parseTags(html) {
 }
 
 for (const file of htmlFiles) {
-  const filePath = join(siteRoot, "site", file);
+  const filePath = join(siteDir, file);
   const html = readFileSync(filePath, "utf8");
   const tags = parseTags(html);
 
@@ -73,10 +88,7 @@ for (const file of htmlFiles) {
   } else {
     const fragment = (skipLink.attrs.href || "").slice(1);
     if (fragment.length === 0 || !ids.has(fragment)) {
-      report(
-        file,
-        `skip link href="${skipLink.attrs.href}" does not match an element id`,
-      );
+      report(file, `skip link href="${skipLink.attrs.href}" does not match an element id`);
     }
   }
 
@@ -90,15 +102,17 @@ for (const file of htmlFiles) {
     if (typeof tag.attrs.class === "string") {
       for (const token of tag.attrs.class.split(/\s+/)) {
         if (token && !definedClasses.has(token)) {
-          report(file, `class "${token}" is not defined in site/assets/styles.css`);
+          report(
+            file,
+            `class "${token}" is not defined in ${loadedStylesheets.join(" or ")}`,
+          );
         }
       }
     }
 
     const isScript = tag.name === "script";
     const isStylesheet =
-      tag.name === "link" &&
-      /(^|\s)stylesheet(\s|$)/i.test(tag.attrs.rel || "");
+      tag.name === "link" && /(^|\s)stylesheet(\s|$)/i.test(tag.attrs.rel || "");
 
     for (const key of ["href", "src"]) {
       const raw = tag.attrs[key];
@@ -125,7 +139,7 @@ for (const file of htmlFiles) {
       if (clean.length === 0) continue;
 
       const target = clean.startsWith("/")
-        ? join(siteRoot, "site", clean)
+        ? join(siteDir, clean)
         : resolve(dirname(filePath), clean);
 
       if (!existsSync(target) || !statSync(target).isFile()) {
@@ -140,7 +154,7 @@ if (htmlFiles.length === 0) {
 }
 
 console.log(
-  `check-site: checked ${htmlFiles.length} page(s) against ${definedClasses.size} CSS classes`,
+  `check-site: checked ${htmlFiles.length} page(s) against ${loadedStylesheets.join(" + ")} (${definedClasses.size} classes)`,
 );
 
 if (problems.length > 0) {

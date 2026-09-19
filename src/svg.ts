@@ -1,10 +1,12 @@
-import { XMLParser } from "fast-xml-parser";
+import { XMLParser, XMLValidator } from "fast-xml-parser";
 
 export interface ParsedSvg {
   raw: string;
   root: any | undefined;
+  rootTag: string | null;
   idMap: Map<string, any>;
   duplicates: string[];
+  error: string | null;
 }
 
 export type NameSource = "aria-labelledby" | "aria-label" | "title" | "none";
@@ -25,31 +27,41 @@ function isObject(value: any): value is Record<string, any> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function findRoot(document: any): any | undefined {
+function localName(tag: string): string {
+  const parts = tag.split(":");
+  return parts[parts.length - 1] ?? tag;
+}
+
+function firstValue(value: any): any {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function findRoot(document: any): { tag: string; node: any } | undefined {
   if (!isObject(document)) return undefined;
 
-  if ("svg" in document && isObject(document["svg"])) {
-    return document["svg"];
+  if ("svg" in document) {
+    const node = firstValue(document["svg"]);
+    if (isObject(node)) return { tag: "svg", node };
   }
 
   const keys = Object.keys(document);
   for (const key of keys) {
     if (key.startsWith("?")) continue;
-    const value = document[key];
+    const node = firstValue(document[key]);
     if (
-      isObject(value) &&
-      Object.keys(value).some(
+      isObject(node) &&
+      Object.keys(node).some(
         (attr) => attr === `${ATTR_PREFIX}xmlns` || attr.startsWith(`${ATTR_PREFIX}xmlns:`),
       )
     ) {
-      return value;
+      return { tag: key, node };
     }
   }
 
   for (const key of keys) {
     if (key.startsWith("?")) continue;
-    const value = document[key];
-    if (isObject(value)) return value;
+    const node = firstValue(document[key]);
+    if (isObject(node)) return { tag: key, node };
   }
 
   return undefined;
@@ -79,23 +91,50 @@ function collectIds(node: any, idMap: Map<string, any>, duplicates: string[]): v
 
 export function parseSvg(source: string): ParsedSvg {
   const raw = source;
-  let document: any;
-  try {
-    document = parser.parse(source);
-  } catch {
-    return { raw, root: undefined, idMap: new Map(), duplicates: [] };
-  }
-
-  const root = findRoot(document);
+  const text = source.charCodeAt(0) === 0xfeff ? source.slice(1) : source;
   const idMap = new Map<string, any>();
   const duplicates: string[] = [];
+  const failed = (error: string): ParsedSvg => ({
+    raw,
+    root: undefined,
+    rootTag: null,
+    idMap,
+    duplicates,
+    error,
+  });
+
+  const validation = XMLValidator.validate(text);
+  if (validation !== true) {
+    const detail =
+      validation && typeof validation === "object" && validation.err
+        ? `${validation.err.msg} (line ${validation.err.line}, col ${validation.err.col})`
+        : "not well-formed XML";
+    return failed(`Not a well-formed XML document: ${detail}`);
+  }
+
+  let document: any;
   try {
-    if (root !== undefined) collectIds(root, idMap, duplicates);
+    document = parser.parse(text);
+  } catch (err) {
+    return failed(`XML parse failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  const found = findRoot(document);
+  if (found === undefined || !isObject(found.node)) {
+    return failed("No root element found; expected a single <svg> element.");
+  }
+  if (localName(found.tag) !== "svg") {
+    return failed(`Root element is <${found.tag}>, not <svg>; not a standalone SVG document.`);
+  }
+
+  const root = found.node;
+  try {
+    collectIds(root, idMap, duplicates);
   } catch {
     void 0;
   }
 
-  return { raw, root, idMap, duplicates };
+  return { raw, root, rootTag: found.tag, idMap, duplicates, error: null };
 }
 
 export function nodeText(node: any): string {

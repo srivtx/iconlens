@@ -1,0 +1,11 @@
+/* iconlens — per-tool accent for the Lens suite.
+   Only the accent changes here; everything else comes from lens.css. */
+:root {
+  --accent: #e11d48;
+  --accent-ink: #ffffff;
+}
+
+/* Page-specific tweak: keep the SARIF action row off the results table. */
+.playground__results .btn-row {
+  margin-top: var(--s-4);
+}

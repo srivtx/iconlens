@@ -30,6 +30,10 @@ Requires Bun (https://bun.sh); installs into Bun's global bin directory.
 EOF
     exit 0
     ;;
+  -*)
+    die "unknown option: $REF
+Run 'install.sh --help' for usage."
+    ;;
 esac
 
 command -v bun >/dev/null 2>&1 || die "Bun is required to install $BIN.

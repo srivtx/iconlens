@@ -23,6 +23,15 @@ jobs:
       - name: Test
         run: bun test
 
+      - name: Build site bundle
+        run: bun run build:site
+
+      - name: Check site
+        run: bun run check:site
+
+      - name: Ensure committed site bundle is up to date
+        run: git diff --exit-code -- site/assets/demo.js
+
       - name: Write fixtures
         run: bun run make-fixtures
 

@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Malformed XML and non-`<svg>` input no longer report clean: they now emit an
+  `SVG-PARSE-000` error and the CLI exits `2`, so a CI gate cannot pass on
+  unreadable or non-SVG input.
+- `--sarif`/`--dir` no longer swallow the following flag as their value.
+- Missing files, unreadable directories, and unwritable `--sarif` reports now
+  exit `2` with a one-line message instead of an uncaught stack trace.
+- `--sarif=<path>` and `--fail-on=<level>` inline forms are supported.
+- `--json` over multiple files emits a single valid JSON array.
+- `aria-hidden="false"` no longer suppresses `SVG-DECOR-003`.
+- `tabindex="-1"` (programmatic focus) is no longer a focus-order violation.
+- SARIF `artifactLocation.uri` is the plain file path, not the annotated
+  finding location.
+
+### Added
+
+- `SVG-REF-009`: dangling `aria-describedby` references.
+- `-q` as a short alias for `--quiet`, and `-` to read an SVG from stdin.
+- Regression tests for every fix above.
+
+### Removed
+
+- `peerDependencies.typescript` (moved to `devDependencies`) and
+  `publishConfig`, which contradicted the "not published to npm" policy.
+
 ## [0.1.0] - 2026-09-19
 
 ### Added
@@ -19,4 +47,4 @@ All notable changes to this project are documented here. The format is based on
 - `makeGoodSvg` / `makeBadSvg` fixtures and `writeFixturesTo(dir)` helper.
 - GitHub Actions CI running typecheck, tests, and fixture CLI checks.
 
-[0.1.0]: https://github.com/example/iconlens/releases/tag/v0.1.0
+[0.1.0]: https://github.com/srivtx/iconlens/releases/tag/v0.1.0

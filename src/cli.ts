@@ -5,11 +5,11 @@ import { fileURLToPath } from "node:url";
 import { auditSvg } from "./audit.ts";
 import { formatJson, formatText } from "./report.ts";
 import { writeSarif } from "./sarif.ts";
-import type { AuditResult, Severity } from "./types.ts";
+import { PARSE_ERROR_CODE, type AuditResult, type Severity } from "./types.ts";
 
 export type FailOn = "error" | "warning" | "info" | "none";
 
-interface Options {
+export interface Options {
   json: boolean;
   quiet: boolean;
   dir: string | null;
@@ -42,18 +42,21 @@ Usage:
 
 Options:
   --dir <path>            Lint every .svg file in <path> (non-recursive, sorted)
-  --json                  Print machine-readable JSON instead of text
-  --quiet                 Print a single summary line per file
+  --json                  Print machine-readable JSON; one object for a single
+                          file, a JSON array when linting more than one
+  --quiet, -q             Print a single summary line per file
   --sarif <path>          Write a SARIF 2.1.0 report to <path>
   --fail-on <level>       Exit non-zero at this severity or above:
                           error (default), warning, info, none
   -h, --help              Show this help
   -v, --version           Print the version
 
+Reads standard input when a <file> is "-" (reported as <stdin>).
+
 Exit codes:
   0  no issues at or above --fail-on
   1  at least one issue at or above --fail-on
-  2  invalid usage / no input
+  2  invalid usage, unreadable input, or input that is not a well-formed SVG
 `;
 
 export function parseArgs(argv: string[]): Options {
@@ -69,38 +72,41 @@ export function parseArgs(argv: string[]): Options {
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
+    if (arg === undefined) continue;
     if (arg === "--json") {
       opts.json = true;
-    } else if (arg === "--quiet") {
+    } else if (arg === "--quiet" || arg === "-q") {
       opts.quiet = true;
-    } else if (arg === "--dir") {
-      const next = argv[++i];
-      if (next === undefined) {
+    } else if (arg === "--dir" || arg.startsWith("--dir=")) {
+      const value = arg.startsWith("--dir=") ? arg.slice("--dir=".length) : argv[++i];
+      if (value === undefined || value.length === 0 || value.startsWith("-")) {
         throw new Error("--dir requires a path argument");
       }
-      opts.dir = next;
-    } else if (arg === "--sarif") {
-      const next = argv[++i];
-      if (next === undefined) {
+      opts.dir = value;
+    } else if (arg === "--sarif" || arg.startsWith("--sarif=")) {
+      const value = arg.startsWith("--sarif=") ? arg.slice("--sarif=".length) : argv[++i];
+      if (value === undefined || value.length === 0 || value.startsWith("-")) {
         throw new Error("--sarif requires a path argument");
       }
-      opts.sarif = next;
-    } else if (arg === "--fail-on") {
-      const next = argv[++i];
-      if (next === undefined) {
+      opts.sarif = value;
+    } else if (arg === "--fail-on" || arg.startsWith("--fail-on=")) {
+      const value = arg.startsWith("--fail-on=") ? arg.slice("--fail-on=".length) : argv[++i];
+      if (value === undefined || value.length === 0) {
         throw new Error("--fail-on requires a level argument");
       }
-      if (!FAIL_ON_VALUES.includes(next as FailOn)) {
-        throw new Error(`Invalid --fail-on value: ${next} (expected error, warning, info, or none)`);
+      if (!FAIL_ON_VALUES.includes(value as FailOn)) {
+        throw new Error(`Invalid --fail-on value: ${value} (expected error, warning, info, or none)`);
       }
-      opts.failOn = next as FailOn;
+      opts.failOn = value as FailOn;
     } else if (arg === "-h" || arg === "--help") {
       opts.help = true;
     } else if (arg === "-v" || arg === "--version") {
       opts.version = true;
-    } else if (arg !== undefined && arg.startsWith("-")) {
+    } else if (arg === "-") {
+      opts.files.push(arg);
+    } else if (arg.startsWith("-")) {
       throw new Error(`Unknown option: ${arg}`);
-    } else if (arg !== undefined) {
+    } else {
       opts.files.push(arg);
     }
   }
@@ -110,10 +116,16 @@ export function parseArgs(argv: string[]): Options {
 function collectFiles(opts: Options): string[] {
   const files = [...opts.files];
   if (opts.dir !== null) {
-    const entries = readdirSync(opts.dir)
-      .filter((name) => name.toLowerCase().endsWith(".svg"))
-      .sort();
-    for (const name of entries) {
+    let entries: string[];
+    try {
+      entries = readdirSync(opts.dir);
+    } catch (err) {
+      throw new Error(
+        `cannot read --dir "${opts.dir}": ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+    const svgs = entries.filter((name) => name.toLowerCase().endsWith(".svg")).sort();
+    for (const name of svgs) {
       files.push(join(opts.dir, name));
     }
   }
@@ -138,7 +150,7 @@ export async function run(argv: string[]): Promise<number> {
   try {
     opts = parseArgs(argv);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : String(err));
+    console.error(`iconlens: ${err instanceof Error ? err.message : String(err)}`);
     console.error(USAGE);
     return 2;
   }
@@ -153,43 +165,92 @@ export async function run(argv: string[]): Promise<number> {
     return 0;
   }
 
-  const files = collectFiles(opts);
+  let files: string[];
+  try {
+    files = collectFiles(opts);
+  } catch (err) {
+    console.error(`iconlens: ${err instanceof Error ? err.message : String(err)}`);
+    return 2;
+  }
+
   if (files.length === 0) {
+    if (opts.dir !== null) {
+      console.error(`iconlens: no .svg files found in "${opts.dir}"`);
+    } else {
+      console.error("iconlens: no input files");
+    }
     console.error(USAGE);
     return 2;
   }
 
   let failed = false;
+  let inputFailure = false;
   const results: AuditResult[] = [];
+
   for (const file of files) {
     let text: string;
-    try {
-      text = await Bun.file(file).text();
-    } catch (err) {
-      console.error(`${file}: ${err instanceof Error ? err.message : String(err)}`);
-      failed = true;
-      continue;
+    let displayName: string;
+    if (file === "-") {
+      displayName = "<stdin>";
+      try {
+        text = await Bun.stdin.text();
+      } catch (err) {
+        console.error(
+          `iconlens: cannot read <stdin>: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        inputFailure = true;
+        continue;
+      }
+    } else {
+      displayName = basename(file);
+      try {
+        text = await Bun.file(file).text();
+      } catch (err) {
+        console.error(
+          `iconlens: cannot read ${file}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        inputFailure = true;
+        continue;
+      }
     }
-    const result = auditSvg(text, basename(file));
+
+    const result = auditSvg(text, displayName);
     results.push(result);
+    if (result.issues.some((issue) => issue.code === PARSE_ERROR_CODE)) {
+      inputFailure = true;
+    }
     if (exceedsFailOn(result.counts, opts.failOn)) {
       failed = true;
     }
+
+    if (opts.json) {
+      continue;
+    }
     if (opts.quiet) {
       console.log(
-        `${basename(file)}: ${result.counts.error} error(s), ${result.counts.warning} warning(s), ${result.counts.info} info`,
+        `${displayName}: ${result.counts.error} error(s), ${result.counts.warning} warning(s), ${result.counts.info} info`,
       );
-    } else if (opts.json) {
-      console.log(formatJson(result));
     } else {
       console.log(formatText(result));
     }
   }
 
-  if (opts.sarif !== null) {
-    await writeSarif(opts.sarif, results, "iconlens", VERSION);
+  if (opts.json && results.length > 0) {
+    console.log(results.length === 1 ? formatJson(results[0]!) : JSON.stringify(results, null, 2));
   }
 
+  if (opts.sarif !== null) {
+    try {
+      await writeSarif(opts.sarif, results, "iconlens", VERSION);
+    } catch (err) {
+      console.error(
+        `iconlens: cannot write SARIF report to ${opts.sarif}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return 2;
+    }
+  }
+
+  if (inputFailure) return 2;
   return failed ? 1 : 0;
 }
 

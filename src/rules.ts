@@ -92,14 +92,38 @@ export function runRules(parsed: ParsedSvg, location: string): Issue[] {
 
   try {
     if (isObject(root)) {
+      const describedby = attr(root, "aria-describedby");
+      if (describedby !== undefined && describedby.trim().length > 0) {
+        const missing = describedby
+          .trim()
+          .split(/\s+/)
+          .filter((id) => id.length > 0 && !parsed.idMap.has(id));
+        if (missing.length > 0) {
+          issues.push({
+            code: "SVG-REF-009",
+            severity: "error",
+            message: `aria-describedby references missing id(s): ${missing.join(", ")}.`,
+            location,
+            wcag: "4.1.2",
+          });
+        }
+      }
+    }
+  } catch {
+    void 0;
+  }
+
+  try {
+    if (isObject(root)) {
       const hasRole = attr(root, "role") !== undefined;
-      const hasHidden = attr(root, "aria-hidden") !== undefined;
+      const hiddenAttr = attr(root, "aria-hidden");
+      const hasHidden = hiddenAttr !== undefined && hiddenAttr.trim().toLowerCase() !== "false";
       if (!hasRole && !hasHidden && safeName(parsed).name === "") {
         issues.push({
           code: "SVG-DECOR-003",
           severity: "warning",
           message:
-            'Root svg has no role, no accessible name, and no aria-hidden; add role="img" plus a name, or mark it decorative with aria-hidden="true".',
+            'Root svg has no role and no accessible name; add role="img" plus a name, or mark it decorative with aria-hidden="true".',
           location,
           wcag: "1.1.1",
         });
@@ -182,6 +206,9 @@ export function runRules(parsed: ParsedSvg, location: string): Issue[] {
     walkElements(root, (tag, node) => {
       const tabindex = attr(node, "tabindex");
       if (tabindex === undefined) return;
+      const trimmed = tabindex.trim();
+      const numeric = /^-?\d+$/.test(trimmed);
+      if (numeric && Number(trimmed) < 0) return;
       const role = attr(node, "role");
       const nativeFocusable = tag === "a" || tag === "button";
       const roleFocusable = role !== undefined && FOCUSABLE_ROLES.includes(role);
@@ -197,6 +224,10 @@ export function runRules(parsed: ParsedSvg, location: string): Issue[] {
     });
   } catch {
     void 0;
+  }
+
+  for (const issue of issues) {
+    if (issue.file === undefined) issue.file = location;
   }
 
   issues.sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));

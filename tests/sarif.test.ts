@@ -41,6 +41,14 @@ describe("toSarif", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(sarif.runs[0]!.results.length).toBe(a.issues.length + b.issues.length);
   });
+
+  test("artifact URI is the plain file path, not the annotated location", () => {
+    const result = auditSvg(makeBadSvg(), "bad.svg");
+    const sarif = toSarif(result, "iconlens", "0.1.0");
+    const duplicate = sarif.runs[0]!.results.find((r) => r.ruleId === "SVG-ID-006");
+    expect(duplicate).toBeDefined();
+    expect(duplicate!.locations[0]!.physicalLocation.artifactLocation.uri).toBe("bad.svg");
+  });
 });
 
 describe("writeSarif", () => {
