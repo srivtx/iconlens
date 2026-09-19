@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iconlens — offline SVG accessibility lint</title>
+<meta name="description" content="iconlens computes the accessible name of standalone SVG files the way a screen reader would and flags the structural failures that break them. Offline, no network, CI-ready.">
+<meta name="theme-color" content="#e11d48">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="iconlens — offline SVG accessibility lint">
+<meta property="og:description" content="Offline accessibility lint for standalone .svg files — accessible-name computation, eight rules, JSON and SARIF 2.1.0 output.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://iconlens-srivtx.vercel.app">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e11d48'/%3E%3Ccircle cx='14' cy='14' r='6.4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("iconlens-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+  if (
+    "IntersectionObserver" in window &&
+    !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+  ) {
+    document.documentElement.classList.add("js");
+  }
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="19" height="19" focusable="false">
+          <circle cx="14" cy="14" r="8.4" fill="none" stroke="currentColor" stroke-width="2.4"></circle>
+          <line x1="20.4" y1="20.4" x2="27.5" y2="27.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></line>
+          <circle cx="14" cy="14" r="3" fill="currentColor"></circle>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">iconlens</span>
+        <span class="brand-sub">SVG accessibility lint</span>
+      </span>
+    </a>
+
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+      <span class="nav-toggle-label">Menu</span>
+    </button>
+
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <ul class="nav-list">
+        <li><a href="#gap">The gap</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#rules">Rules</a></li>
+        <li><a href="#usage">Usage</a></li>
+        <li><a href="#playground">Playground</a></li>
+      </ul>
+    </nav>
+
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+      <span class="theme-icon" aria-hidden="true">◐</span>
+      <span id="theme-toggle-text">Theme</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-ambient" aria-hidden="true">
+      <span class="ambient-layer ambient-grid"></span>
+      <span class="ambient-layer ambient-glow"></span>
+    </div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy reveal">
+        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> iconlens · offline SVG accessibility</p>
+        <h1 class="hero-title" id="hero-title">Accessible SVG, <span class="h1-accent">measured exactly.</span></h1>
+        <p class="lede">iconlens computes the accessible name of a standalone <code class="code">.svg</code> file the way a screen reader would — <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code> — and flags the structural failures that break it.</p>
+        <p class="subcopy">No browser, no network, no telemetry. Parse assets on disk, lint them in CI, and emit SARIF 2.1.0 for GitHub code scanning.</p>
+
+        <div class="install-chip">
+          <code class="install-cmd">bun add -d iconlens</code>
+          <button type="button" class="install-copy" data-copy="bun add -d iconlens">Copy</button>
+        </div>
+
+        <div class="actions">
+          <a class="btn btn-primary shimmer" href="#playground">Open the playground <span aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="https://github.com/srivtx/iconlens">View source on GitHub</a>
+        </div>
+
+        <ul class="trust-row">
+          <li class="badge">no network</li>
+          <li class="badge">MIT</li>
+          <li class="badge">Bun + TypeScript</li>
+          <li class="badge">SVG-AAM names</li>
+          <li class="badge">SARIF 2.1.0</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual reveal">
+        <div class="artboard">
+          <div class="artboard-bar">
+            <span class="artboard-dots" aria-hidden="true">
+              <i class="dot dot-r"></i><i class="dot dot-y"></i><i class="dot dot-g"></i>
+            </span>
+            <span class="artboard-file">icon.svg</span>
+            <span class="artboard-status">24 × 24</span>
+          </div>
+          <div class="artboard-canvas" aria-hidden="true">
+            <span class="ruler ruler-x"></span>
+            <span class="ruler ruler-y"></span>
+            <span class="crosshair crosshair-a"></span>
+            <span class="crosshair crosshair-b"></span>
+            <div class="sel-frame">
+              <span class="sel-handle handle-tl"></span>
+              <span class="sel-handle handle-tc"></span>
+              <span class="sel-handle handle-tr"></span>
+              <span class="sel-handle handle-ml"></span>
+              <span class="sel-handle handle-mr"></span>
+              <span class="sel-handle handle-bl"></span>
+              <span class="sel-handle handle-bc"></span>
+              <span class="sel-handle handle-br"></span>
+              <svg class="lens-mark" viewBox="0 0 120 120" focusable="false">
+                <path class="lens-path" d="M18 60 C 38 26, 82 26, 102 60 C 82 94, 38 94, 18 60 Z"></path>
+                <circle class="lens-pupil" cx="60" cy="60" r="13"></circle>
+                <circle class="lens-spark" cx="52" cy="52" r="3.4"></circle>
+              </svg>
+            </div>
+            <span class="measure measure-w">78 px</span>
+            <span class="measure measure-h">42 px</span>
+          </div>
+          <div class="artboard-foot">
+            <span class="artboard-tag">role="img"</span>
+            <span class="artboard-tag is-ok">aria-labelledby</span>
+            <span class="artboard-tag">&lt;title&gt;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stat-band" aria-label="iconlens at a glance">
+    <div class="wrap">
+      <div class="stat-grid">
+        <div class="stat"><span class="stat-value">8</span><span class="stat-label">structural rules</span></div>
+        <div class="stat"><span class="stat-value">3</span><span class="stat-label">SVG-AAM name sources</span></div>
+        <div class="stat"><span class="stat-value">3</span><span class="stat-label">outputs: text · JSON · SARIF</span></div>
+        <div class="stat"><span class="stat-value">0</span><span class="stat-label">network calls</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="gap" aria-labelledby="gap-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">The gap</p>
+        <h2 class="section-title" id="gap-title">Nothing else lints the asset itself.</h2>
+        <p class="section-lede">Design systems and icon libraries ship <code class="code">.svg</code> assets with no accessible name, and the existing tools do not catch it.</p>
+      </div>
+
+      <div class="gap-grid reveal">
+        <article class="gap-card">
+          <div class="gap-head"><h3 class="gap-name">svglint</h3><span class="gap-tag">XML linter</span></div>
+          <p class="gap-body">A generic XML and attribute linter. Accessibility only if you hand-write the rules — no accessible-name computation and no dangling-IDREF checks.</p>
+          <a class="gap-link" href="https://github.com/simple-icons/svglint">github.com/simple-icons/svglint →</a>
+        </article>
+        <article class="gap-card">
+          <div class="gap-head"><h3 class="gap-name">svgo</h3><span class="gap-tag">optimizer</span></div>
+          <p class="gap-body">Actively <strong>removes</strong> <code class="code">&lt;title&gt;</code> and <code class="code">&lt;desc&gt;</code> by default, so its default preset strips the accessible name out of the asset.</p>
+          <a class="gap-link" href="https://github.com/svg/svgo">github.com/svg/svgo →</a>
+        </article>
+        <article class="gap-card">
+          <div class="gap-head"><h3 class="gap-name">axe-core / Pa11y</h3><span class="gap-tag">browser</span></div>
+          <p class="gap-body">Need a live DOM and a browser, so they cannot lint an asset file sitting on disk before it ships.</p>
+          <a class="gap-link" href="https://github.com/dequelabs/axe-core">github.com/dequelabs/axe-core →</a>
+        </article>
+        <article class="gap-card">
+          <div class="gap-head"><h3 class="gap-name">Biome <code class="code">noSvgWithoutTitle</code></h3><span class="gap-tag">one rule</span></div>
+          <p class="gap-body">A single rule that only covers inline HTML or JSX. It never sees a standalone <code class="code">.svg</code> file on its own.</p>
+          <a class="gap-link" href="https://biomejs.dev/linter/rules/no-svg-without-title/">biomejs.dev →</a>
+        </article>
+        <article class="gap-card">
+          <div class="gap-head"><h3 class="gap-name">W3C ACT 7d6734</h3><span class="gap-tag">spec, not a tool</span></div>
+          <p class="gap-body">Defines the accessible-name test precisely, but ships no implementation you can actually run in CI.</p>
+          <a class="gap-link" href="https://www.w3.org/WAI/standards-guidelines/act/rules/7d6734/">w3.org ACT rule 7d6734 →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features" aria-labelledby="features-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Capabilities</p>
+        <h2 class="section-title" id="features-title">Built for icon pipelines.</h2>
+        <p class="section-lede">One small, offline binary that understands SVG accessibility structure — not just XML well-formedness.</p>
+      </div>
+
+      <div class="card-grid reveal">
+        <article class="card">
+          <span class="card-glyph" aria-hidden="true">name</span>
+          <h3 class="card-title">SVG-AAM name computation</h3>
+          <p class="card-body">Resolves <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code> — and stops at the first source that applies, exactly as the spec orders it.</p>
+        </article>
+        <article class="card">
+          <span class="card-glyph" aria-hidden="true">8 rules</span>
+          <h3 class="card-title">Structural rules</h3>
+          <p class="card-body">Missing names, dangling IDREFs, duplicate ids, leftover <code class="code">tabindex</code>, misplaced <code class="code">&lt;title&gt;</code>, and more — with WCAG references on every finding.</p>
+        </article>
+        <article class="card">
+          <span class="card-glyph" aria-hidden="true">offline</span>
+          <h3 class="card-title">Offline by design</h3>
+          <p class="card-body">No network code, no uploads, no telemetry. Files are parsed locally, so it runs the same on a laptop, in a container, or in air-gapped CI.</p>
+        </article>
+        <article class="card">
+          <span class="card-glyph" aria-hidden="true">cli+api</span>
+          <h3 class="card-title">CLI and library</h3>
+          <p class="card-body">Lint files or directories from the command line, or call <code class="code">auditSvg</code> directly from TypeScript. The same rules power both.</p>
+        </article>
+        <article class="card">
+          <span class="card-glyph" aria-hidden="true">sarif</span>
+          <h3 class="card-title">SARIF 2.1.0</h3>
+          <p class="card-body">Emit a SARIF log so findings surface inline in GitHub code scanning and the Security tab, with severity mapped to SARIF level.</p>
+        </article>
+        <article class="card">
+          <span class="card-glyph" aria-hidden="true">exit 1</span>
+          <h3 class="card-title">CI gate</h3>
+          <p class="card-body">Exits <code class="code">1</code> on any error-severity issue, <code class="code">0</code> otherwise, and <code class="code">2</code> on bad usage. <code class="code">--fail-on</code> tightens or loosens the threshold.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">How it works</p>
+        <h2 class="section-title" id="how-title">Parse, compute, rule, report.</h2>
+        <p class="section-lede">A short, static pipeline with no rendering step and no hidden state.</p>
+      </div>
+      <ol class="steps reveal">
+        <li class="step">
+          <span class="step-num" aria-hidden="true">1</span>
+          <h3 class="step-title">Parse</h3>
+          <p class="step-body"><code class="code">fast-xml-parser</code> builds a node tree, an id map, and the list of duplicate ids in one pass.</p>
+        </li>
+        <li class="step">
+          <span class="step-num" aria-hidden="true">2</span>
+          <h3 class="step-title">Compute the name</h3>
+          <p class="step-body">Resolve <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code>, stopping at the first source that applies.</p>
+        </li>
+        <li class="step">
+          <span class="step-num" aria-hidden="true">3</span>
+          <h3 class="step-title">Run the rules</h3>
+          <p class="step-body">Eight rule functions read the tree and emit issues, each with a severity and a WCAG reference.</p>
+        </li>
+        <li class="step">
+          <span class="step-num" aria-hidden="true">4</span>
+          <h3 class="step-title">Report</h3>
+          <p class="step-body">Print text or JSON, write SARIF 2.1.0, and exit <code class="code">0</code>, <code class="code">1</code>, or <code class="code">2</code> for CI.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="rules" aria-labelledby="rules-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">The rules</p>
+        <h2 class="section-title" id="rules-title">Eight rules, each with a reference.</h2>
+        <p class="section-lede">The accessible-name computation is the core; the rules describe exactly what breaks a standalone graphic.</p>
+      </div>
+
+      <h3 class="section-title" id="name-priority">Accessible-name priority (SVG-AAM)</h3>
+      <p class="section-lede">iconlens follows the SVG-AAM priority order and stops at the first source that applies.</p>
+
+      <ol class="name-order reveal">
+        <li class="name-step">
+          <span class="name-index">01</span>
+          <div class="name-body">
+            <h4 class="name-kw">aria-labelledby</h4>
+            <p>Each referenced id is resolved and its text concatenated, in order. A reference to a missing id is itself a finding (<code class="code">SVG-NAME-002</code>).</p>
+          </div>
+          <span class="name-flag">wins</span>
+        </li>
+        <li class="name-step">
+          <span class="name-index">02</span>
+          <div class="name-body">
+            <h4 class="name-kw">aria-label</h4>
+            <p>Used when no <code class="code">aria-labelledby</code> applies and the attribute carries text.</p>
+          </div>
+        </li>
+        <li class="name-step">
+          <span class="name-index">03</span>
+          <div class="name-body">
+            <h4 class="name-kw">&lt;title&gt;</h4>
+            <p>The first child <code class="code">&lt;title&gt;</code> of the root <code class="code">&lt;svg&gt;</code>. A title anywhere else is flagged (<code class="code">SVG-TITLE-004</code>).</p>
+          </div>
+        </li>
+      </ol>
+
+      <p class="name-note">The first source that yields a non-empty name wins; the rest are ignored. If none apply, the graphic has no accessible name — and the rules say so.</p>
+
+      <pre class="code"><code>&lt;svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t"&gt;
+  &lt;title id="t"&gt;Company logo&lt;/title&gt;
+  &lt;path d="…" /&gt;
+&lt;/svg&gt;</code></pre>
+
+      <div class="table-wrap reveal">
+        <table class="rule-table">
+          <caption>Eight rules across accessible names, decoration, structure and references.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Severity</th>
+              <th scope="col">WCAG</th>
+              <th scope="col">Check</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code class="rule-code">SVG-NAME-001</code></td><td><span class="sev sev-error">error</span></td><td class="rule-wcag">4.1.2</td><td class="rule-check"><code class="code">role="img"</code> with no accessible name</td></tr>
+            <tr><td><code class="rule-code">SVG-NAME-002</code></td><td><span class="sev sev-error">error</span></td><td class="rule-wcag">4.1.2</td><td class="rule-check"><code class="code">aria-labelledby</code> references a missing id</td></tr>
+            <tr><td><code class="rule-code">SVG-DECOR-003</code></td><td><span class="sev sev-warning">warning</span></td><td class="rule-wcag">1.1.1</td><td class="rule-check">No role, no name, not marked decorative</td></tr>
+            <tr><td><code class="rule-code">SVG-TITLE-004</code></td><td><span class="sev sev-warning">warning</span></td><td class="rule-wcag">1.3.1</td><td class="rule-check"><code class="code">&lt;title&gt;</code> is not the first child of <code class="code">&lt;svg&gt;</code></td></tr>
+            <tr><td><code class="rule-code">SVG-DESC-005</code></td><td><span class="sev sev-info">info</span></td><td class="rule-wcag">1.1.1</td><td class="rule-check">Named graphic without a <code class="code">&lt;desc&gt;</code></td></tr>
+            <tr><td><code class="rule-code">SVG-ID-006</code></td><td><span class="sev sev-error">error</span></td><td class="rule-wcag">—</td><td class="rule-check">Duplicate <code class="code">id</code> attributes</td></tr>
+            <tr><td><code class="rule-code">SVG-USE-007</code></td><td><span class="sev sev-warning">warning</span></td><td class="rule-wcag">—</td><td class="rule-check"><code class="code">&lt;use&gt;</code> points at an id that does not exist</td></tr>
+            <tr><td><code class="rule-code">SVG-FOCUS-008</code></td><td><span class="sev sev-warning">warning</span></td><td class="rule-wcag">2.4.3</td><td class="rule-check"><code class="code">tabindex</code> on a non-interactive element</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Install</p>
+        <h2 class="section-title" id="install-title">One dependency, one binary.</h2>
+        <p class="section-lede">Add it as a dev dependency and run the <code class="code">iconlens</code> binary, or invoke it once with <code class="code">bunx</code> without touching your manifest.</p>
+      </div>
+      <pre class="code"><code># Add to a project
+bun add -d iconlens
+
+# Or run once
+bunx iconlens icons/*.svg</code></pre>
+    </div>
+  </section>
+
+  <section class="section" id="usage" aria-labelledby="usage-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Reference</p>
+        <h2 class="section-title" id="usage-title">CLI and library usage.</h2>
+        <p class="section-lede">The same rule set runs from the command line or from TypeScript.</p>
+      </div>
+
+      <dl class="flag-list reveal">
+        <div class="flag"><dt class="flag-term">iconlens &lt;files…&gt;</dt><dd class="flag-desc">Lint one or more <code class="code">.svg</code> files.</dd></div>
+        <div class="flag"><dt class="flag-term">--dir &lt;path&gt;</dt><dd class="flag-desc">Lint every <code class="code">.svg</code> file under a directory.</dd></div>
+        <div class="flag"><dt class="flag-term">--json</dt><dd class="flag-desc">Print a machine-readable JSON report to stdout.</dd></div>
+        <div class="flag"><dt class="flag-term">--quiet</dt><dd class="flag-desc">One summary line per file.</dd></div>
+        <div class="flag"><dt class="flag-term">--sarif &lt;file&gt;</dt><dd class="flag-desc">Write a SARIF 2.1.0 log for GitHub code scanning.</dd></div>
+        <div class="flag"><dt class="flag-term">--fail-on &lt;level&gt;</dt><dd class="flag-desc"><code class="code">error</code> (default), <code class="code">warning</code>, <code class="code">info</code>, or <code class="code">none</code> — sets the exit-code threshold.</dd></div>
+      </dl>
+
+      <pre class="code"><code># Lint files
+iconlens icons/*.svg
+
+# Lint a directory
+iconlens --dir icons/
+
+# Machine-readable
+iconlens logo.svg --json
+
+# One summary line per file
+iconlens logo.svg --quiet
+
+# SARIF for GitHub code scanning
+iconlens logo.svg --sarif iconlens.sarif
+
+# Choose when the exit code becomes non-zero
+iconlens logo.svg --fail-on warning</code></pre>
+
+      <p class="section-lede">Or call it as a library:</p>
+      <pre class="code"><code>import { auditSvg, accessibleName, parseSvg, toSarif } from "iconlens";
+
+const result = auditSvg(source, "logo.svg");
+const name = accessibleName(parseSvg(source));
+// { name: "Company logo", source: "aria-labelledby" }
+
+const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
+
+      <div class="prose">
+        <p>Exit code is <code class="code">1</code> on any error-severity issue, <code class="code">0</code> otherwise, and <code class="code">2</code> with no arguments. <code class="code">--fail-on</code> defaults to <code class="code">error</code> and also accepts <code class="code">warning</code>, <code class="code">info</code>, or <code class="code">none</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ci" aria-labelledby="ci-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Continuous integration</p>
+        <h2 class="section-title" id="ci-title">SARIF and GitHub code scanning.</h2>
+        <p class="section-lede">Emit a SARIF 2.1.0 log and let GitHub code scanning annotate the pull request.</p>
+      </div>
+      <pre class="code"><code>- name: Icon accessibility scan
+  run: iconlens --dir src/assets/icons --sarif iconlens.sarif
+
+- name: Upload SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: iconlens.sarif</code></pre>
+
+      <div class="prose">
+        <p>Each issue becomes a SARIF result with <code class="code">ruleId</code> set to its rule code (for example <code class="code">SVG-NAME-001</code>), a level mapped from severity (<code class="code">error</code> → <code class="code">error</code>, <code class="code">warning</code> → <code class="code">warning</code>, <code class="code">info</code> → <code class="code">note</code>), and a location pointing at the file. <code class="code">--fail-on</code> affects only the exit code; every issue is still reported and included in SARIF output.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="limitations" aria-labelledby="limitations-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Honest scope</p>
+        <h2 class="section-title" id="limitations-title">Limitations.</h2>
+      </div>
+      <div class="callout callout-warn reveal" role="note">
+        <h3 class="callout-title">Static analysis, by design</h3>
+        <p>iconlens is static file analysis. It does not render the graphic, so it cannot compute colour contrast. Name computation follows the SVG-AAM priority order but does not implement every edge of the full specification. Inline SVG in HTML or JSX is out of scope.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Questions</p>
+        <h2 class="section-title" id="faq-title">FAQ.</h2>
+      </div>
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary class="faq-q">Does it need a browser or a network?</summary>
+          <div class="faq-a"><p>No. iconlens parses files locally with no network code, no uploads, and no telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">How is the accessible name computed?</summary>
+          <div class="faq-a"><p>Per SVG-AAM priority: <code class="code">aria-labelledby</code> first, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code>. The first source that yields a non-empty name wins; the rest are ignored.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Can it check inline SVG in HTML or JSX?</summary>
+          <div class="faq-a"><p>No. iconlens targets standalone <code class="code">.svg</code> assets on disk. Inline SVG in markup is out of scope — use an HTML/JSX linter for that.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Does it replace axe-core or Pa11y?</summary>
+          <div class="faq-a"><p>No — it complements them. Browser engines test a rendered DOM; iconlens tests the asset before it ever reaches the DOM, which is exactly the gap they cannot cover.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">How do I fail CI on warnings too?</summary>
+          <div class="faq-a"><p>Run <code class="code">iconlens icons/*.svg --fail-on warning</code>. It affects only the exit code; every issue is still reported and included in SARIF output.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">What do the exit codes mean?</summary>
+          <div class="faq-a"><p><code class="code">1</code> on any error-severity issue, <code class="code">0</code> otherwise, and <code class="code">2</code> on bad usage such as no arguments.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="playground" aria-labelledby="playground-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-kicker">Live, in your browser</p>
+        <h2 class="section-title" id="playground-title">Try iconlens.</h2>
+        <p class="section-lede">Paste SVG markup or drop a <code class="code">.svg</code> file. Everything runs in your browser — nothing is uploaded.</p>
+      </div>
+
+      <div class="playground reveal">
+        <div class="playground-grid">
+          <div class="playground-col panel">
+            <h3 class="panel-title">Paste SVG markup</h3>
+            <label class="field" for="svg-input">SVG markup</label>
+            <textarea id="svg-input" class="textarea" rows="12" spellcheck="false"></textarea>
+            <div class="actions">
+              <button type="button" class="btn btn-primary" id="lint-svg">Audit pasted SVG</button>
+              <button type="button" class="btn" id="load-sample">Load sample</button>
+            </div>
+          </div>
+          <div class="playground-col panel">
+            <h3 class="panel-title">Or drop a .svg file</h3>
+            <div class="dropzone" id="dropzone">
+              <span class="dropzone-icon" aria-hidden="true">.svg</span>
+              <p><label for="file">Choose or drop an .svg file</label></p>
+              <p><input type="file" id="file" class="file-input" accept=".svg,image/svg+xml"></p>
+              <p class="muted">Drag a file onto this box. It never leaves this tab.</p>
+            </div>
+          </div>
+        </div>
+        <noscript>
+          <p class="muted">The playground needs JavaScript to run the auditor in your browser.</p>
+        </noscript>
+
+        <p id="status" class="status muted" role="status" aria-live="polite">No SVG audited yet.</p>
+
+        <div id="error" class="callout is-warn" hidden>
+          <p id="error-text"></p>
+        </div>
+
+        <div id="summary-wrap" hidden>
+          <div class="badge-row" id="summary" aria-label="Issue counts"></div>
+        </div>
+
+        <div id="issues-wrap" class="table-wrap" hidden>
+          <table class="rule-table">
+            <caption id="issues-caption">Issues</caption>
+            <thead>
+              <tr>
+                <th scope="col">Severity</th>
+                <th scope="col">Rule</th>
+                <th scope="col">WCAG</th>
+                <th scope="col">Location</th>
+                <th scope="col">Message</th>
+              </tr>
+            </thead>
+            <tbody id="issues-body"></tbody>
+          </table>
+        </div>
+
+        <p id="sarif-wrap" class="actions" hidden>
+          <button type="button" class="btn" id="download-sarif">Download SARIF</button>
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-edge" aria-hidden="true"></div>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <span class="footer-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="18" height="18" focusable="false">
+          <circle cx="14" cy="14" r="8.4" fill="none" stroke="currentColor" stroke-width="2.4"></circle>
+          <line x1="20.4" y1="20.4" x2="27.5" y2="27.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"></line>
+          <circle cx="14" cy="14" r="3" fill="currentColor"></circle>
+        </svg>
+      </span>
+      <div>
+        <p class="footer-name">iconlens</p>
+        <p class="footer-tagline">Offline accessibility lint for standalone SVG.</p>
+      </div>
+    </div>
+
+    <nav aria-label="The Lens suite">
+      <h2 class="footer-nav-title">The Lens suite</h2>
+      <ul class="footer-links">
+        <li><a href="https://booklens-srivtx.vercel.app">booklens</a></li>
+        <li><a href="https://officelens-srivtx.vercel.app">officelens</a></li>
+        <li><a href="https://odflens-srivtx.vercel.app">odflens</a></li>
+        <li><a href="https://waxseal-srivtx.vercel.app">waxseal</a></li>
+      </ul>
+    </nav>
+
+    <nav aria-label="Project">
+      <h2 class="footer-nav-title">Project</h2>
+      <ul class="footer-links">
+        <li><a href="https://iconlens-srivtx.vercel.app">Live site</a></li>
+        <li><a href="https://github.com/srivtx/iconlens">Repository</a></li>
+        <li><a href="https://github.com/srivtx/iconlens/blob/main/LICENSE">MIT license</a></li>
+        <li><a href="https://github.com/srivtx/iconlens/issues">Issues</a></li>
+      </ul>
+    </nav>
+
+    <div class="footer-meta">
+      <p class="muted">MIT licensed. Part of the Lens suite for offline document tooling.</p>
+      <a class="back-to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/demo.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var SAMPLE =
+    '<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="nope">\n' +
+    '  <path id="p" d="M4 4h16v16H4z"/>\n' +
+    '  <path id="p" d="M4 4h8v8H4z"/>\n' +
+    '  <use href="#missing" tabindex="0"/>\n' +
+    '</svg>';
+
+  var state = { result: null, file: "pasted.svg" };
+
+  var playground = document.querySelector(".playground");
+  var dropzone = document.getElementById("dropzone");
+  var fileInput = document.getElementById("file");
+  var svgInput = document.getElementById("svg-input");
+  var lintSvg = document.getElementById("lint-svg");
+  var loadSample = document.getElementById("load-sample");
+  var status = document.getElementById("status");
+  var errorBox = document.getElementById("error");
+  var errorText = document.getElementById("error-text");
+  var summaryWrap = document.getElementById("summary-wrap");
+  var summary = document.getElementById("summary");
+  var issuesWrap = document.getElementById("issues-wrap");
+  var issuesBody = document.getElementById("issues-body");
+  var issuesCaption = document.getElementById("issues-caption");
+  var sarifWrap = document.getElementById("sarif-wrap");
+  var sarifButton = document.getElementById("download-sarif");
+
+  function messageOf(error) {
+    return error && error.message ? error.message : String(error);
+  }
+
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function setBusy(on) {
+    if (!playground) return;
+    if (on) playground.setAttribute("aria-busy", "true");
+    else playground.removeAttribute("aria-busy");
+  }
+
+  function badge(label, modifier) {
+    var el = document.createElement("span");
+    el.className = modifier ? "badge " + modifier : "badge";
+    el.textContent = label;
+    return el;
+  }
+
+  function severityClass(severity) {
+    if (severity === "error") return "is-err";
+    if (severity === "warning") return "is-warn";
+    return null;
+  }
+
+  function showError(message) {
+    state.result = null;
+    state.file = null;
+    errorText.textContent = message;
+    errorBox.hidden = false;
+    summaryWrap.hidden = true;
+    issuesWrap.hidden = true;
+    sarifWrap.hidden = true;
+    status.textContent = message;
+  }
+
+  function render(result, name) {
+    state.result = result;
+    state.file = name;
+
+    errorBox.hidden = true;
+
+    var counts = result.counts || { error: 0, warning: 0, info: 0 };
+    clear(summary);
+    summary.appendChild(badge("errors " + (counts.error || 0), "is-err"));
+    summary.appendChild(badge("warnings " + (counts.warning || 0), "is-warn"));
+    summary.appendChild(badge("info " + (counts.info || 0), null));
+    summaryWrap.hidden = false;
+
+    var issues = result.issues || [];
+    clear(issuesBody);
+    issuesCaption.textContent =
+      issues.length === 1 ? "1 issue" : issues.length + " issues";
+
+    if (issues.length === 0) {
+      var emptyRow = document.createElement("tr");
+      var emptyCell = document.createElement("td");
+      emptyCell.colSpan = 5;
+      emptyCell.textContent = "No issues found.";
+      emptyRow.appendChild(emptyCell);
+      issuesBody.appendChild(emptyRow);
+    } else {
+      issues.forEach(function (issue) {
+        var row = document.createElement("tr");
+
+        var severityCell = document.createElement("td");
+        severityCell.appendChild(
+          badge(issue.severity, severityClass(issue.severity))
+        );
+        row.appendChild(severityCell);
+
+        var codeCell = document.createElement("td");
+        codeCell.textContent = issue.code;
+        row.appendChild(codeCell);
+
+        var wcagCell = document.createElement("td");
+        wcagCell.textContent = issue.wcag ? issue.wcag : "—";
+        row.appendChild(wcagCell);
+
+        var locationCell = document.createElement("td");
+        locationCell.textContent = issue.location ? issue.location : "—";
+        row.appendChild(locationCell);
+
+        var messageCell = document.createElement("td");
+        messageCell.textContent = issue.message;
+        row.appendChild(messageCell);
+
+        issuesBody.appendChild(row);
+      });
+    }
+
+    issuesWrap.hidden = false;
+    sarifWrap.hidden = false;
+    status.textContent =
+      (name || "Document") +
+      ": " +
+      (counts.error || 0) +
+      " errors, " +
+      (counts.warning || 0) +
+      " warnings, " +
+      (counts.info || 0) +
+      " info.";
+  }
+
+  function auditText(text, name) {
+    var api = window.IconLens;
+    if (!api || typeof api.auditSvg !== "function") {
+      showError("The iconlens demo bundle did not load.");
+      return;
+    }
+    if (!text || text.trim().length === 0) {
+      showError("No SVG markup to lint.");
+      return;
+    }
+    setBusy(true);
+    status.textContent = "Auditing…";
+    window.setTimeout(function () {
+      try {
+        render(api.auditSvg(text, name || "pasted.svg"), name || "pasted.svg");
+      } catch (error) {
+        showError("Could not parse SVG: " + messageOf(error));
+      }
+      setBusy(false);
+    }, 0);
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    var name = file.name || "document.svg";
+    var dot = name.lastIndexOf(".");
+    var ext = dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
+    if (ext !== "svg") {
+      showError("Unsupported file type “." + (ext || "unknown") + "”. Use an .svg file.");
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      auditText(String(reader.result), name);
+    };
+    reader.onerror = function () {
+      showError("Could not read " + name + ".");
+    };
+    reader.readAsText(file);
+  }
+
+  function fallbackSarif(result) {
+    return {
+      version: "2.1.0",
+      $schema: "https://json.schemastore.org/sarif-2.1.0.json",
+      runs: [
+        {
+          tool: { driver: { name: "iconlens", version: "0.1.0" } },
+          results: (result.issues || []).map(function (issue) {
+            var level =
+              issue.severity === "error"
+                ? "error"
+                : issue.severity === "warning"
+                  ? "warning"
+                  : "note";
+            return {
+              ruleId: issue.code,
+              level: level,
+              message: { text: issue.message },
+              locations: [
+                {
+                  physicalLocation: {
+                    artifactLocation: { uri: issue.location },
+                  },
+                },
+              ],
+              properties: { severity: issue.severity, wcag: issue.wcag },
+            };
+          }),
+        },
+      ],
+    };
+  }
+
+  function buildSarif(result) {
+    var api = window.IconLens;
+    if (api && typeof api.toSarif === "function") {
+      try {
+        return api.toSarif(result, "iconlens", "0.1.0");
+      } catch (error) {
+        void 0;
+      }
+    }
+    return fallbackSarif(result);
+  }
+
+  function downloadSarif() {
+    if (!state.result) return;
+    var blob = new Blob([JSON.stringify(buildSarif(state.result), null, 2)], {
+      type: "application/sarif+json",
+    });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "iconlens.sarif";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files.length > 0) {
+      handleFile(fileInput.files[0]);
+    }
+  });
+
+  lintSvg.addEventListener("click", function () {
+    auditText(svgInput.value, "pasted.svg");
+  });
+
+  loadSample.addEventListener("click", function () {
+    svgInput.value = SAMPLE;
+    auditText(SAMPLE, "sample.svg");
+  });
+
+  sarifButton.addEventListener("click", downloadSarif);
+
+  dropzone.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    dropzone.classList.add("is-drop");
+  });
+
+  dropzone.addEventListener("dragleave", function () {
+    dropzone.classList.remove("is-drop");
+  });
+
+  dropzone.addEventListener("drop", function (event) {
+    event.preventDefault();
+    dropzone.classList.remove("is-drop");
+    var transfer = event.dataTransfer;
+    if (transfer && transfer.files && transfer.files.length > 0) {
+      handleFile(transfer.files[0]);
+    }
+  });
+})();
+</script>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

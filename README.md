@@ -18,6 +18,27 @@
 
 **Live site:** [iconlens](https://lens-site-srivtx.vercel.app/iconlens.html)  ·  **Playground:** [https://lens-site-srivtx.vercel.app/playground](https://lens-site-srivtx.vercel.app/playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
 
+## Website
+
+The product site and a fully client-side playground live at
+**[iconlens-srivtx.vercel.app](https://iconlens-srivtx.vercel.app)**. The site is
+static: no framework, no external requests, and no build step at deploy time.
+Vercel serves the `site/` directory directly (`vercel.json`).
+
+Preview it locally:
+
+```bash
+bun install
+bun run build:site        # bundles src/index.ts -> site/assets/demo.js
+bun run check:site        # verifies links, classes, headings, and no CDN
+python3 -m http.server 4173 --directory site
+# open http://localhost:4173
+```
+
+`site/assets/demo.js` is the committed esbuild bundle (IIFE, global `IconLens`)
+that powers the playground. Rebuild it with `bun run build:site` whenever the
+library changes.
+
 ## The problem
 
 Design systems and icon libraries ship `.svg` assets that have no accessible
