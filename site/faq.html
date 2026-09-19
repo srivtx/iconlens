@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ — iconlens</title>
+<meta name="description" content="iconlens scope, limitations, and how it compares to svglint, svgo, Biome, axe-core, and the W3C ACT rule.">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="FAQ — iconlens">
+<meta property="og:description" content="iconlens scope, limitations, and how it compares to other SVG tooling.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://iconlens-srivtx.vercel.app/faq.html">
+<meta property="og:image" content="https://iconlens-srivtx.vercel.app/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FAQ — iconlens">
+<meta name="twitter:description" content="iconlens scope, limitations, and how it compares to other SVG tooling.">
+<meta name="twitter:image" content="https://iconlens-srivtx.vercel.app/assets/og.png">
+<link rel="canonical" href="https://iconlens-srivtx.vercel.app/faq.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e11d48'/%3E%3Ccircle cx='14' cy='14' r='6.4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/lens.css">
+<link rel="stylesheet" href="assets/theme.css">
+<script>
+(function () {
+  try {
+    var stored = window.localStorage.getItem("iconlens-theme");
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  } catch (err) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html" aria-label="iconlens home">
+      <span class="brand__mark" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 32 32" focusable="false">
+          <circle cx="14" cy="14" r="8.4"></circle>
+          <line x1="20.4" y1="20.4" x2="27.5" y2="27.5"></line>
+          <circle cx="14" cy="14" r="3" style="fill:currentColor;stroke:none"></circle>
+        </svg>
+      </span>
+      <span class="brand__name">iconlens</span>
+      <span class="brand__tag">SVG accessibility audit</span>
+    </a>
+    <nav class="nav__links" id="site-nav" aria-label="Sections">
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
+      <a href="index.html#playground">Playground</a>
+      <a href="https://github.com/srivtx/iconlens">GitHub</a>
+    </nav>
+    <div class="nav__actions">
+      <button type="button" class="nav__toggle btn btn--ghost btn--sm" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span id="theme-toggle-text">Theme</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <div class="docs">
+      <nav class="docs__nav" aria-label="Documentation">
+        <h2>iconlens</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html" aria-current="page">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <article class="docs__body">
+        <div class="docs__head">
+          <p class="eyebrow">Reference</p>
+          <h1>FAQ</h1>
+          <p>Scope, limits, and where iconlens fits next to the tools you already use.</p>
+        </div>
+
+        <h2>Questions</h2>
+        <div class="faq">
+          <details>
+            <summary>Does it need a browser or a network?</summary>
+            <div class="faq__body"><p>No. iconlens parses files locally, with no network code, uploads, or telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</p></div>
+          </details>
+          <details>
+            <summary>How is the accessible name computed?</summary>
+            <div class="faq__body"><p>Per SVG-AAM priority: <code>aria-labelledby</code> first, then <code>aria-label</code>, then the first child <code>&lt;title&gt;</code>. The first source that yields a non-empty name wins; the rest are ignored.</p></div>
+          </details>
+          <details>
+            <summary>Can it check inline SVG in HTML or JSX?</summary>
+            <div class="faq__body"><p>No. iconlens targets standalone <code>.svg</code> assets on disk. Inline SVG in markup is out of scope; use an HTML or JSX linter for that.</p></div>
+          </details>
+          <details>
+            <summary>Does it replace axe-core or Pa11y?</summary>
+            <div class="faq__body"><p>No. It complements them. Browser engines test a rendered DOM; iconlens tests the asset before it reaches the DOM, which is the gap they cannot cover.</p></div>
+          </details>
+          <details>
+            <summary>How do I fail CI on warnings too?</summary>
+            <div class="faq__body"><p>Run <code>iconlens icons/*.svg --fail-on warning</code>. It affects only the exit code; every issue is still reported and included in SARIF output.</p></div>
+          </details>
+          <details>
+            <summary>What do the exit codes mean?</summary>
+            <div class="faq__body"><p><code>1</code> on any error-severity issue, <code>0</code> otherwise, and <code>2</code> on bad usage such as no arguments.</p></div>
+          </details>
+        </div>
+
+        <h2>Limitations</h2>
+        <div class="callout" role="note">
+          <h3>Static analysis</h3>
+          <p>iconlens is static file analysis. It does not render the graphic, so it cannot compute colour contrast. Name computation follows the SVG-AAM priority order but does not implement every edge of the full specification. Inline SVG in HTML or JSX is out of scope.</p>
+        </div>
+
+        <h2>How it compares</h2>
+        <div class="deflist">
+          <div class="defrow">
+            <dt class="defrow__term">svglint</dt>
+            <dd class="defrow__def">A generic XML and attribute linter. It checks accessibility only if you hand-write the rules, and it has no accessible-name computation or dangling-IDREF checks. <a href="https://github.com/simple-icons/svglint">github.com/simple-icons/svglint</a></dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">svgo</dt>
+            <dd class="defrow__def">Actively <strong>removes</strong> <code>&lt;title&gt;</code> and <code>&lt;desc&gt;</code> by default, so its default preset strips the accessible name out of the asset. <a href="https://github.com/svg/svgo">github.com/svg/svgo</a></dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">axe-core / Pa11y</dt>
+            <dd class="defrow__def">Need a live DOM and a browser, so they cannot audit an asset file sitting on disk before it ships. <a href="https://github.com/dequelabs/axe-core">github.com/dequelabs/axe-core</a></dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">Biome <code>noSvgWithoutTitle</code></dt>
+            <dd class="defrow__def">A single rule that only covers inline HTML or JSX. It never sees a standalone <code>.svg</code> file on its own. <a href="https://biomejs.dev/linter/rules/no-svg-without-title/">biomejs.dev</a></dd>
+          </div>
+          <div class="defrow">
+            <dt class="defrow__term">W3C ACT 7d6734</dt>
+            <dd class="defrow__def">Defines the accessible-name test precisely, but ships no implementation you can actually run in CI. <a href="https://www.w3.org/WAI/standards-guidelines/act/rules/7d6734/">w3.org ACT rule 7d6734</a></dd>
+          </div>
+        </div>
+
+        <div class="docs__foot">
+          <a href="ci.html">← CI</a>
+          <a href="index.html">Overview →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 32 32" focusable="false">
+            <circle cx="14" cy="14" r="8.4"></circle>
+            <line x1="20.4" y1="20.4" x2="27.5" y2="27.5"></line>
+            <circle cx="14" cy="14" r="3" style="fill:currentColor;stroke:none"></circle>
+          </svg>
+        </span>
+        <div>
+          <p>iconlens</p>
+          <p class="muted">Offline accessibility audit for standalone SVG.</p>
+        </div>
+      </div>
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul>
+          <li><a href="https://github.com/srivtx/iconlens">Repository</a></li>
+          <li><a href="https://github.com/srivtx/iconlens/blob/main/LICENSE">MIT license</a></li>
+          <li><a href="https://github.com/srivtx/iconlens/issues">Issues</a></li>
+          <li><a href="https://lenses-srivtx.vercel.app">Lenses suite</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="footer__meta">
+      <p>by svx · MIT licensed. Part of <a href="https://lenses-srivtx.vercel.app">Lenses</a> — offline accessibility and integrity tools.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

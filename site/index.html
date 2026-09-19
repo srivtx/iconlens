@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iconlens — offline SVG accessibility audit</title>
-<meta name="description" content="iconlens computes the accessible name of standalone SVG files the way a screen reader would, then flags the structural failures that break the name. It runs offline and emits text, JSON, or SARIF 2.1.0.">
+<title>iconlens — catch inaccessible SVG before it ships</title>
+<meta name="description" content="iconlens reads a standalone .svg file and tells you whether a screen reader can name it, then points at the exact failure. Offline, no browser, SARIF for CI.">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="iconlens — offline SVG accessibility audit">
+<meta property="og:title" content="iconlens — catch inaccessible SVG before it ships">
 <meta property="og:description" content="Offline accessibility audit for standalone .svg files: accessible-name computation, eight rules, and JSON or SARIF 2.1.0 output.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://iconlens-srivtx.vercel.app">
 <meta property="og:image" content="https://iconlens-srivtx.vercel.app/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="iconlens — offline SVG accessibility audit">
+<meta property="og:image:alt" content="iconlens — catch inaccessible SVG before it ships">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="iconlens — offline SVG accessibility audit">
+<meta name="twitter:title" content="iconlens — catch inaccessible SVG before it ships">
 <meta name="twitter:description" content="Offline accessibility audit for standalone .svg files: accessible-name computation, eight rules, and JSON or SARIF 2.1.0 output.">
 <meta name="twitter:image" content="https://iconlens-srivtx.vercel.app/assets/og.png">
 <link rel="canonical" href="https://iconlens-srivtx.vercel.app">
@@ -46,7 +46,7 @@
 
 <header class="nav" id="top">
   <div class="container nav__inner">
-    <a class="brand" href="#top" aria-label="iconlens home">
+    <a class="brand" href="index.html" aria-label="iconlens home">
       <span class="brand__mark" aria-hidden="true">
         <svg class="icon" viewBox="0 0 32 32" focusable="false">
           <circle cx="14" cy="14" r="8.4"></circle>
@@ -59,11 +59,9 @@
     </a>
 
     <nav class="nav__links" id="site-nav" aria-label="Sections">
-      <a href="#gap">The gap</a>
-      <a href="#features">Features</a>
-      <a href="#rules">Rules</a>
-      <a href="#install">Install</a>
-      <a href="#usage">Usage</a>
+      <a href="rules.html">Rules</a>
+      <a href="usage.html">Usage</a>
+      <a href="ci.html">CI</a>
       <a href="#playground">Playground</a>
       <a href="https://github.com/srivtx/iconlens">GitHub</a>
     </nav>
@@ -92,23 +90,23 @@
     <div class="container">
       <div class="split">
         <div class="split__copy">
-          <p class="eyebrow reveal">Eight rules · SVG-AAM name computation · SARIF 2.1.0</p>
-          <h1 id="hero-title" class="reveal">Audit the accessibility of standalone SVG files.</h1>
-          <p class="hero__lede reveal">iconlens computes the accessible name of a standalone <code>.svg</code> file the way a screen reader would: <code>aria-labelledby</code>, then <code>aria-label</code>, then the first child <code>&lt;title&gt;</code>. It flags the structural failures that break the name.</p>
+          <p class="eyebrow reveal">Offline · no browser · CI-ready</p>
+          <h1 id="hero-title" class="reveal">Catch inaccessible SVG before it ships.</h1>
+          <p class="hero__lede reveal">iconlens reads a standalone <code>.svg</code> file and tells you whether a screen reader can name it, then points at the exact line that breaks it. One command, no rendering, no network.</p>
 
           <div class="btn-row reveal">
             <a class="btn btn--primary" href="#playground">
-              Open the playground
+              Try it on your icon
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"></path></svg>
             </a>
-            <a class="btn btn--outline" href="https://github.com/srivtx/iconlens">View source on GitHub</a>
+            <a class="btn btn--outline" href="rules.html">Read the rules</a>
           </div>
 
           <div class="install reveal">
             <code class="install__cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh</code>
             <button type="button" class="btn btn--outline btn--sm" data-copy="curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh">Copy</button>
           </div>
-          <p class="install__note reveal">Installs the <code>iconlens</code> binary with Bun. It is not published to npm; <code>bunx github:srivtx/iconlens#main</code> runs it without installing.</p>
+          <p class="install__note reveal">Installs the <code>iconlens</code> binary with Bun. It is not on npm; <code>bunx github:srivtx/iconlens#main</code> runs it without installing.</p>
         </div>
 
         <div class="split__aside reveal">
@@ -117,76 +115,43 @@
               <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
               <span class="term__title">iconlens icons/</span>
             </div>
-            <pre class="term__body"><span class="ln"><span class="p">$ </span><span class="cmd">iconlens icons/*.svg</span></span><span class="ln"><span class="dim">logo.svg  </span><span class="err">errors:3</span><span class="dim">  </span><span class="warn">warnings:2</span><span class="dim">  info:0</span></span><span class="ln"><span class="warn">WARNING</span><span class="dim">  SVG-FOCUS-008  tabindex="0" on &lt;use&gt;; only interactive elements should be focusable.</span></span><span class="ln"><span class="err">ERROR</span><span class="dim">    SVG-ID-006     Duplicate id "p"; ids must be unique.</span></span><span class="ln"><span class="err">ERROR</span><span class="dim">    SVG-NAME-001   Root svg has role="img" but no accessible name.</span></span><span class="ln"><span class="err">ERROR</span><span class="dim">    SVG-NAME-002   aria-labelledby references missing id(s): nope.</span></span><span class="ln"><span class="warn">WARNING</span><span class="dim">  SVG-USE-007    &lt;use&gt; references missing target "#missing".</span></span></pre>
+            <pre class="term__body term__body--wrap"><span class="ln"><span class="p">$ </span><span class="cmd">iconlens icons/*.svg</span></span><span class="ln"><span class="dim">logo.svg  </span><span class="err">errors:3</span><span class="dim">  </span><span class="warn">warnings:2</span><span class="dim">  info:0</span></span><span class="ln"><span class="err">ERROR</span><span class="dim">    SVG-NAME-001   Root svg has role="img" but no accessible name.</span></span><span class="ln"><span class="err">ERROR</span><span class="dim">    SVG-NAME-002   aria-labelledby references missing id(s): nope.</span></span><span class="ln"><span class="err">ERROR</span><span class="dim">    SVG-ID-006     Duplicate id "p"; ids must be unique.</span></span><span class="ln"><span class="warn">WARNING</span><span class="dim">  SVG-USE-007    &lt;use&gt; references missing target "#missing".</span></span><span class="ln"><span class="warn">WARNING</span><span class="dim">  SVG-FOCUS-008  tabindex="0" on a non-interactive element.</span></span></pre>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section" id="gap" aria-labelledby="gap-title">
+  <section class="section" id="catches" aria-labelledby="catches-title">
     <div class="container">
       <div class="band reveal">
-        <p class="band__label" id="gap-title">The gap</p>
+        <p class="band__label" id="catches-title">What it catches</p>
         <div class="band__body">
-          <p class="band__lead">Design systems and icon libraries ship <code>.svg</code> assets with no accessible name, and the tools commonly used for SVG do not catch it.</p>
-          <div class="deflist">
-            <div class="defrow">
-              <dt class="defrow__term">svglint</dt>
-              <dd class="defrow__def">A generic XML and attribute linter. It checks accessibility only if you hand-write the rules, and it has no accessible-name computation or dangling-IDREF checks. <a href="https://github.com/simple-icons/svglint">github.com/simple-icons/svglint</a></dd>
-            </div>
-            <div class="defrow">
-              <dt class="defrow__term">svgo</dt>
-              <dd class="defrow__def">Actively <strong>removes</strong> <code>&lt;title&gt;</code> and <code>&lt;desc&gt;</code> by default, so its default preset strips the accessible name out of the asset. <a href="https://github.com/svg/svgo">github.com/svg/svgo</a></dd>
-            </div>
-            <div class="defrow">
-              <dt class="defrow__term">axe-core / Pa11y</dt>
-              <dd class="defrow__def">Need a live DOM and a browser, so they cannot audit an asset file sitting on disk before it ships. <a href="https://github.com/dequelabs/axe-core">github.com/dequelabs/axe-core</a></dd>
-            </div>
-            <div class="defrow">
-              <dt class="defrow__term">Biome <code>noSvgWithoutTitle</code></dt>
-              <dd class="defrow__def">A single rule that only covers inline HTML or JSX. It never sees a standalone <code>.svg</code> file on its own. <a href="https://biomejs.dev/linter/rules/no-svg-without-title/">biomejs.dev</a></dd>
-            </div>
-            <div class="defrow">
-              <dt class="defrow__term">W3C ACT 7d6734</dt>
-              <dd class="defrow__def">Defines the accessible-name test precisely, but ships no implementation you can actually run in CI. <a href="https://www.w3.org/WAI/standards-guidelines/act/rules/7d6734/">w3.org ACT rule 7d6734</a></dd>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="features" aria-labelledby="features-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="features-title">What it does</p>
-        <div class="band__body">
-          <p class="band__lead">A small offline binary that understands SVG accessibility structure, not just XML well-formedness.</p>
+          <p class="band__lead">The failures that make an icon silent or confusing to a screen reader, each with a plain explanation and a rule code you can look up.</p>
           <dl class="defgrid">
             <div>
-              <dt>SVG-AAM name computation</dt>
-              <dd>Resolves <code>aria-labelledby</code>, then <code>aria-label</code>, then the first child <code>&lt;title&gt;</code>, and stops at the first source that applies, as the spec orders it.</dd>
+              <dt>An icon with no name</dt>
+              <dd>A graphic that a screen reader cannot name is announced as nothing useful. iconlens computes the name the way a browser would and reports when there is none.</dd>
             </div>
             <div>
-              <dt>Structural rules</dt>
-              <dd>Missing names, dangling IDREFs, duplicate ids, leftover <code>tabindex</code>, misplaced <code>&lt;title&gt;</code>, and more, with a WCAG reference on every finding.</dd>
+              <dt>A name that points nowhere</dt>
+              <dd><code>aria-labelledby</code> that references a missing id, or a <code>&lt;use&gt;</code> that targets a symbol that does not exist, leaves the graphic unnamed or broken.</dd>
             </div>
             <div>
-              <dt>Offline by design</dt>
-              <dd>Files are parsed locally, with no network code, uploads, or telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</dd>
+              <dt>Duplicate ids</dt>
+              <dd>Two elements with the same id make every reference ambiguous, and the second one silently wins.</dd>
             </div>
             <div>
-              <dt>CLI and library</dt>
-              <dd>Audit files or directories from the command line, or call <code>auditSvg</code> directly from TypeScript. The same rules power both.</dd>
+              <dt>Decoration that takes focus</dt>
+              <dd><code>tabindex</code> on a non-interactive element puts a dead stop in the keyboard order.</dd>
             </div>
             <div>
-              <dt>SARIF 2.1.0</dt>
-              <dd>Emit a SARIF log so findings surface inline in GitHub code scanning and the Security tab, with severity mapped to SARIF level.</dd>
+              <dt>A title in the wrong place</dt>
+              <dd><code>&lt;title&gt;</code> must be the first child of <code>&lt;svg&gt;</code>. Anywhere else, it is ignored.</dd>
             </div>
             <div>
-              <dt>CI gate</dt>
-              <dd>Exits <code>1</code> on any error-severity issue, <code>0</code> otherwise, and <code>2</code> on bad usage. <code>--fail-on</code> tightens or loosens the threshold.</dd>
+              <dt>A complex graphic with no description</dt>
+              <dd>Charts and diagrams need more than a name; iconlens notes when a named graphic has no <code>&lt;desc&gt;</code>.</dd>
             </div>
           </dl>
         </div>
@@ -194,243 +159,20 @@
     </div>
   </section>
 
-  <section class="section" id="how" aria-labelledby="how-title">
+  <section class="section" id="start" aria-labelledby="start-title">
     <div class="container">
       <div class="band reveal">
-        <p class="band__label" id="how-title">How it works</p>
+        <p class="band__label" id="start-title">Quick start</p>
         <div class="band__body">
-          <p class="band__lead">The pipeline is static and has no rendering step.</p>
-          <ol class="steps">
-            <li class="step">
-              <h3>Parse</h3>
-              <p><code>fast-xml-parser</code> builds a node tree, an id map, and the list of duplicate ids in one pass.</p>
-            </li>
-            <li class="step">
-              <h3>Compute the name</h3>
-              <p>Resolve <code>aria-labelledby</code>, then <code>aria-label</code>, then the first child <code>&lt;title&gt;</code>, stopping at the first source that applies.</p>
-            </li>
-            <li class="step">
-              <h3>Run the rules</h3>
-              <p>Eight rule functions read the tree and emit issues, each with a severity and a WCAG reference.</p>
-            </li>
-            <li class="step">
-              <h3>Report</h3>
-              <p>Print text or JSON, write SARIF 2.1.0, and exit <code>0</code>, <code>1</code>, or <code>2</code> for CI.</p>
-            </li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="rules" aria-labelledby="rules-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="rules-title">Rules</p>
-        <div class="band__body">
-          <p class="band__lead">Accessible-name computation is the core. Each rule describes a specific way a standalone graphic breaks.</p>
-
-          <h3 id="name-priority">Accessible-name priority (SVG-AAM)</h3>
-      <p class="muted">iconlens follows the SVG-AAM priority order and stops at the first source that applies.</p>
-
-      <ol class="steps reveal">
-        <li class="step">
-          <h3>aria-labelledby</h3>
-          <p>Each referenced id is resolved and its text concatenated, in order. A reference to a missing id is itself a finding (<code>SVG-NAME-002</code>).</p>
-          <p><span class="chip chip--ok">wins first</span></p>
-        </li>
-        <li class="step">
-          <h3>aria-label</h3>
-          <p>Used when no <code>aria-labelledby</code> applies and the attribute carries text.</p>
-        </li>
-        <li class="step">
-          <h3>&lt;title&gt;</h3>
-          <p>The first child <code>&lt;title&gt;</code> of the root <code>&lt;svg&gt;</code>. A title anywhere else is flagged (<code>SVG-TITLE-004</code>).</p>
-        </li>
-      </ol>
-
-      <p class="muted">The first source that yields a non-empty name wins; the rest are ignored. If none apply, the graphic has no accessible name — and the rules say so.</p>
-
-      <pre class="code"><code>&lt;svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t"&gt;
-  &lt;title id="t"&gt;Company logo&lt;/title&gt;
-  &lt;path d="…" /&gt;
-&lt;/svg&gt;</code></pre>
-
-      <div class="table-wrap reveal">
-        <table>
-          <caption>Eight rules across accessible names, decoration, structure and references.</caption>
-          <thead>
-            <tr>
-              <th scope="col">Code</th>
-              <th scope="col">Severity</th>
-              <th scope="col">WCAG</th>
-              <th scope="col">Check</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td><code>SVG-NAME-001</code></td><td><span class="chip chip--error">error</span></td><td>4.1.2</td><td><code>role="img"</code> with no accessible name</td></tr>
-            <tr><td><code>SVG-NAME-002</code></td><td><span class="chip chip--error">error</span></td><td>4.1.2</td><td><code>aria-labelledby</code> references a missing id</td></tr>
-            <tr><td><code>SVG-DECOR-003</code></td><td><span class="chip chip--warning">warning</span></td><td>1.1.1</td><td>No role, no name, not marked decorative</td></tr>
-            <tr><td><code>SVG-TITLE-004</code></td><td><span class="chip chip--warning">warning</span></td><td>1.3.1</td><td><code>&lt;title&gt;</code> is not the first child of <code>&lt;svg&gt;</code></td></tr>
-            <tr><td><code>SVG-DESC-005</code></td><td><span class="chip chip--info">info</span></td><td>1.1.1</td><td>Named graphic without a <code>&lt;desc&gt;</code></td></tr>
-            <tr><td><code>SVG-ID-006</code></td><td><span class="chip chip--error">error</span></td><td>—</td><td>Duplicate <code>id</code> attributes</td></tr>
-            <tr><td><code>SVG-USE-007</code></td><td><span class="chip chip--warning">warning</span></td><td>—</td><td><code>&lt;use&gt;</code> points at an id that does not exist</td></tr>
-            <tr><td><code>SVG-FOCUS-008</code></td><td><span class="chip chip--warning">warning</span></td><td>2.4.3</td><td><code>tabindex</code> on a non-interactive element</td></tr>
-          </tbody>
-        </table>
-      </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="install" aria-labelledby="install-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="install-title">Install</p>
-        <div class="band__body">
-          <p class="band__lead">iconlens is not published to npm. Install it with the one-line script, or run it without installing.</p>
-          <div class="term" aria-label="Install commands">
+          <p class="band__lead">Install once, then point it at a file, a glob, or a directory. The exit code is the CI gate.</p>
+          <div class="term" aria-label="Quick start commands">
             <div class="term__bar">
               <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="term__title">install</span>
+              <span class="term__title">quick start</span>
             </div>
-            <pre class="term__body term__body--wrap"><span class="ln"><span class="dim"># one-line install (installs the `iconlens` binary)</span></span><span class="ln"><span class="p">$ </span><span class="cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh</span></span><span class="ln"></span><span class="ln"><span class="dim"># or run once, without installing</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bunx github:srivtx/iconlens#main icons/*.svg</span></span><span class="ln"></span><span class="ln"><span class="dim"># add to a project as a dev dependency</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bun add -d github:srivtx/iconlens</span></span><span class="ln"></span><span class="ln"><span class="dim"># install globally</span></span><span class="ln"><span class="p">$ </span><span class="cmd">bun add -g github:srivtx/iconlens</span></span><span class="ln"><span class="p">$ </span><span class="cmd">iconlens icons/*.svg</span></span></pre>
+            <pre class="term__body term__body--wrap"><span class="ln"><span class="dim"># install the binary</span></span><span class="ln"><span class="p">$ </span><span class="cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh</span></span><span class="ln"></span><span class="ln"><span class="dim"># audit one file</span></span><span class="ln"><span class="p">$ </span><span class="cmd">iconlens logo.svg</span></span><span class="ln"></span><span class="ln"><span class="dim"># audit every icon in a directory, and fail CI on warnings</span></span><span class="ln"><span class="p">$ </span><span class="cmd">iconlens --dir icons/ --fail-on warning</span></span></pre>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="usage" aria-labelledby="usage-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="usage-title">Usage</p>
-        <div class="band__body">
-          <p class="band__lead">The same rule set runs from the command line or from TypeScript.</p>
-
-      <div class="table-wrap reveal">
-        <table>
-          <caption>Command-line flags.</caption>
-          <thead>
-            <tr>
-              <th scope="col">Flag</th>
-              <th scope="col">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td><code>iconlens &lt;files…&gt;</code></td><td>Audit one or more <code>.svg</code> files.</td></tr>
-            <tr><td><code>--dir &lt;path&gt;</code></td><td>Audit every <code>.svg</code> file under a directory.</td></tr>
-            <tr><td><code>--json</code></td><td>Print a machine-readable JSON report to stdout.</td></tr>
-            <tr><td><code>--quiet</code></td><td>One summary line per file.</td></tr>
-            <tr><td><code>--sarif &lt;file&gt;</code></td><td>Write a SARIF 2.1.0 log for GitHub code scanning.</td></tr>
-            <tr><td><code>--fail-on &lt;level&gt;</code></td><td><code>error</code> (default), <code>warning</code>, <code>info</code>, or <code>none</code> — sets the exit-code threshold.</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <pre class="code"><code># Audit files
-iconlens icons/*.svg
-
-# Audit a directory
-iconlens --dir icons/
-
-# Machine-readable
-iconlens logo.svg --json
-
-# One summary line per file
-iconlens logo.svg --quiet
-
-# SARIF for GitHub code scanning
-iconlens logo.svg --sarif iconlens.sarif
-
-# Choose when the exit code becomes non-zero
-iconlens logo.svg --fail-on warning</code></pre>
-
-      <p class="muted">Or call it as a library:</p>
-      <pre class="code"><code>import { auditSvg, accessibleName, parseSvg, toSarif } from "iconlens";
-
-const result = auditSvg(source, "logo.svg");
-const name = accessibleName(parseSvg(source));
-// { name: "Company logo", source: "aria-labelledby" }
-
-const sarif = toSarif(result, "iconlens", "0.2.0");</code></pre>
-
-      <div class="prose reveal">
-        <p>Exit code is <code>1</code> on any error-severity issue, <code>0</code> otherwise, and <code>2</code> with no arguments. <code>--fail-on</code> defaults to <code>error</code> and also accepts <code>warning</code>, <code>info</code>, or <code>none</code>.</p>
-      </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="ci" aria-labelledby="ci-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="ci-title">CI</p>
-        <div class="band__body">
-          <p class="band__lead">Emit a SARIF 2.1.0 log and let GitHub code scanning annotate the pull request.</p>
-      <pre class="code"><code>- name: Icon accessibility scan
-  run: iconlens --dir src/assets/icons --sarif iconlens.sarif
-
-- name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v3
-  with:
-    sarif_file: iconlens.sarif</code></pre>
-
-      <div class="prose reveal">
-        <p>Each issue becomes a SARIF result with <code>ruleId</code> set to its rule code (for example <code>SVG-NAME-001</code>), a level mapped from severity (<code>error</code> → <code>error</code>, <code>warning</code> → <code>warning</code>, <code>info</code> → <code>note</code>), and a location pointing at the file. <code>--fail-on</code> affects only the exit code; every issue is still reported and included in SARIF output.</p>
-      </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="limitations" aria-labelledby="limitations-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="limitations-title">Limitations</p>
-        <div class="band__body">
-          <div class="callout" role="note">
-            <h3>Static analysis</h3>
-            <p>iconlens is static file analysis. It does not render the graphic, so it cannot compute colour contrast. Name computation follows the SVG-AAM priority order but does not implement every edge of the full specification. Inline SVG in HTML or JSX is out of scope.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="faq" aria-labelledby="faq-title">
-    <div class="container">
-      <div class="band reveal">
-        <p class="band__label" id="faq-title">FAQ</p>
-        <div class="band__body">
-          <div class="faq">
-            <details>
-              <summary>Does it need a browser or a network?</summary>
-          <div class="faq__body"><p>No. iconlens parses files locally, with no network code, uploads, or telemetry. It runs the same on a laptop, in a container, or in air-gapped CI.</p></div>
-        </details>
-        <details>
-          <summary>How is the accessible name computed?</summary>
-          <div class="faq__body"><p>Per SVG-AAM priority: <code>aria-labelledby</code> first, then <code>aria-label</code>, then the first child <code>&lt;title&gt;</code>. The first source that yields a non-empty name wins; the rest are ignored.</p></div>
-        </details>
-        <details>
-          <summary>Can it check inline SVG in HTML or JSX?</summary>
-          <div class="faq__body"><p>No. iconlens targets standalone <code>.svg</code> assets on disk. Inline SVG in markup is out of scope; use an HTML or JSX linter for that.</p></div>
-        </details>
-        <details>
-          <summary>Does it replace axe-core or Pa11y?</summary>
-          <div class="faq__body"><p>No. It complements them. Browser engines test a rendered DOM; iconlens tests the asset before it reaches the DOM, which is the gap they cannot cover.</p></div>
-        </details>
-        <details>
-          <summary>How do I fail CI on warnings too?</summary>
-          <div class="faq__body"><p>Run <code>iconlens icons/*.svg --fail-on warning</code>. It affects only the exit code; every issue is still reported and included in SARIF output.</p></div>
-        </details>
-        <details>
-          <summary>What do the exit codes mean?</summary>
-          <div class="faq__body"><p><code>1</code> on any error-severity issue, <code>0</code> otherwise, and <code>2</code> on bad usage such as no arguments.</p></div>
-        </details>
-          </div>
+          <p>Full flags, exit codes, and the TypeScript API are in <a href="usage.html">Usage</a>.</p>
         </div>
       </div>
     </div>
@@ -516,6 +258,35 @@ const sarif = toSarif(result, "iconlens", "0.2.0");</code></pre>
     </div>
   </section>
 
+  <section class="section" id="docs" aria-labelledby="docs-title">
+    <div class="container">
+      <div class="band reveal">
+        <p class="band__label" id="docs-title">Documentation</p>
+        <div class="band__body">
+          <p class="band__lead">The landing page is the pitch. The details live on four short pages.</p>
+          <dl class="defgrid">
+            <div>
+              <dt><a href="rules.html">Rules</a></dt>
+              <dd>The eight checks, how the accessible name is computed, and the static pipeline behind a run.</dd>
+            </div>
+            <div>
+              <dt><a href="usage.html">Usage</a></dt>
+              <dd>Every CLI flag, the exit-code scheme, JSON output, and the library API.</dd>
+            </div>
+            <div>
+              <dt><a href="ci.html">CI</a></dt>
+              <dd>SARIF 2.1.0 and GitHub code scanning, with a workflow you can paste.</dd>
+            </div>
+            <div>
+              <dt><a href="faq.html">FAQ</a></dt>
+              <dd>Scope, limitations, and how iconlens compares to svglint, svgo, and axe-core.</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="footer">
@@ -535,23 +306,23 @@ const sarif = toSarif(result, "iconlens", "0.2.0");</code></pre>
         </div>
       </div>
 
-      <nav aria-label="The Lens suite">
-        <h2>The Lens suite</h2>
+      <nav aria-label="Documentation">
+        <h2>Documentation</h2>
         <ul>
-          <li><a href="https://booklens-srivtx.vercel.app">booklens</a></li>
-          <li><a href="https://officelens-srivtx.vercel.app">officelens</a></li>
-          <li><a href="https://odflens-srivtx.vercel.app">odflens</a></li>
-          <li><a href="https://waxseal-srivtx.vercel.app">waxseal</a></li>
+          <li><a href="rules.html">Rules</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="ci.html">CI</a></li>
+          <li><a href="faq.html">FAQ</a></li>
         </ul>
       </nav>
 
       <nav aria-label="Project">
         <h2>Project</h2>
         <ul>
-          <li><a href="https://iconlens-srivtx.vercel.app">Live site</a></li>
           <li><a href="https://github.com/srivtx/iconlens">Repository</a></li>
           <li><a href="https://github.com/srivtx/iconlens/blob/main/LICENSE">MIT license</a></li>
           <li><a href="https://github.com/srivtx/iconlens/issues">Issues</a></li>
+          <li><a href="https://lenses-srivtx.vercel.app">Lenses suite</a></li>
         </ul>
       </nav>
     </div>
@@ -857,5 +628,7 @@ const sarif = toSarif(result, "iconlens", "0.2.0");</code></pre>
 })();
 </script>
 <script src="assets/site.js" defer></script>
+</body>
+</html>
 </body>
 </html>
