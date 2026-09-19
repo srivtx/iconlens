@@ -617,19 +617,41 @@ pre,
   }
 }
 
-.hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: center;
-  gap: clamp(36px, 6vw, 72px);
+.hero-inner {
+  max-width: 56rem;
 }
 
-.hero-copy {
-  min-width: 0;
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 var(--space-4);
+  color: var(--mute);
+  font-size: 0.86rem;
+}
+
+.hero-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dot-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .hero-title {
-  margin: 0 0 var(--space-5);
+  max-width: 20ch;
+  margin: 0 0 var(--space-4);
   font-size: var(--text-display);
   letter-spacing: -0.038em;
   line-height: 1.04;
@@ -637,33 +659,28 @@ pre,
 
 .lede {
   max-width: 58ch;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   color: var(--body);
   font-size: var(--text-lede);
   line-height: 1.6;
 }
 
-.subcopy {
-  max-width: 58ch;
-  margin: 0 0 var(--space-6);
-  color: var(--mute);
-  font-size: 0.98rem;
-}
-
-.install-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 var(--space-6);
-  padding: 8px 8px 8px 16px;
+.install-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 50rem;
+  margin: var(--space-6) 0 0;
+  padding: 9px 9px 9px 14px;
   border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-md, var(--r-md));
   background: var(--card);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-xs, var(--shadow-sm));
 }
 
-.install-chip::before {
+.install-block::before {
   content: "$";
+  flex: none;
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 0.9rem;
@@ -671,10 +688,22 @@ pre,
 }
 
 .install-cmd {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 5px;
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: 0.88rem;
-  white-space: nowrap;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.hero-note {
+  max-width: 58ch;
+  margin: var(--space-3) 0 0;
+  color: var(--mute);
+  font-size: 0.9rem;
 }
 
 .install-copy {
@@ -885,101 +914,6 @@ pre,
 .sev-info {
   color: var(--info);
   background: var(--info-soft);
-}
-
-/* ── Artboard hero visual ────────────────────────────────────────────────── */
-.hero-visual {
-  min-width: 0;
-}
-
-.artboard {
-  position: relative;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-lg);
-  background: var(--canvas);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-.artboard-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--hairline);
-  background: var(--card);
-}
-
-.artboard-file {
-  color: var(--body);
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  font-weight: 600;
-}
-
-.artboard-status {
-  margin-left: auto;
-  color: var(--mute);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-}
-
-.artboard-canvas {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
-  padding: 30px;
-  background-color: var(--canvas);
-  background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-  background-size: 26px 26px;
-}
-
-.lens-mark {
-  width: 58%;
-  height: auto;
-  overflow: visible;
-}
-
-.lens-path {
-  fill: color-mix(in srgb, var(--accent) 12%, transparent);
-  stroke: var(--accent);
-  stroke-width: 2.4;
-  stroke-linejoin: round;
-}
-
-.lens-pupil {
-  fill: var(--ink);
-}
-
-.lens-spark {
-  fill: var(--canvas);
-}
-
-.artboard-foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 14px;
-  border-top: 1px solid var(--hairline);
-  background: var(--card);
-}
-
-.artboard-tag {
-  padding: 3px 10px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  background: var(--canvas);
-  color: var(--mute);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.artboard-tag.is-ok {
-  color: var(--success);
-  border-color: color-mix(in srgb, var(--success) 40%, transparent);
-  background: var(--success-soft);
 }
 
 /* ── Cards ───────────────────────────────────────────────────────────────── */
@@ -1725,15 +1659,6 @@ pre.code code {
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 940px) {
-  .hero-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .hero-visual {
-    order: -1;
-    max-width: 520px;
-  }
-
   .footer-inner {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }

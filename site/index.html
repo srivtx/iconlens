@@ -78,43 +78,21 @@
       <span class="ambient-layer ambient-grid"></span>
       <span class="ambient-layer ambient-glow"></span>
     </div>
-    <div class="wrap hero-grid">
-      <div class="hero-copy reveal">
-        <h1 class="hero-title" id="hero-title">Lint the accessibility of standalone SVG files</h1>
-        <p class="lede">iconlens computes the accessible name of a standalone <code class="code">.svg</code> file the way a screen reader would: <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code>. It flags the structural failures that break the name.</p>
-        <p class="subcopy">iconlens is written in TypeScript, runs on Bun, and is MIT licensed. It parses files on disk, runs in CI, and emits text, JSON, or SARIF 2.1.0 for GitHub code scanning. It does not use a browser or make network requests.</p>
+    <div class="wrap hero-inner">
+      <p class="hero-meta reveal"><span class="hero-dot" aria-hidden="true"></span> Eight rules · SVG-AAM name computation · SARIF 2.1.0</p>
+      <h1 class="hero-title reveal" id="hero-title">Lint the accessibility of standalone SVG files.</h1>
+      <p class="lede reveal">iconlens computes the accessible name of a standalone <code class="code">.svg</code> file the way a screen reader would: <code class="code">aria-labelledby</code>, then <code class="code">aria-label</code>, then the first child <code class="code">&lt;title&gt;</code>. It flags the structural failures that break the name.</p>
 
-        <div class="install-chip">
-          <code class="install-cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh</code>
-          <button type="button" class="install-copy" data-copy="curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh">Copy</button>
-        </div>
-
-        <div class="actions">
-          <a class="btn btn-primary shimmer" href="#playground">Open the playground <span aria-hidden="true">→</span></a>
-          <a class="btn btn-ghost" href="https://github.com/srivtx/iconlens">View source on GitHub</a>
-        </div>
+      <div class="actions reveal">
+        <a class="btn btn-primary shimmer" href="#playground">Open the playground <span aria-hidden="true">→</span></a>
+        <a class="btn btn-ghost" href="https://github.com/srivtx/iconlens">View source on GitHub</a>
       </div>
 
-      <div class="hero-visual reveal">
-        <div class="artboard">
-          <div class="artboard-bar">
-            <span class="artboard-file">icon.svg</span>
-            <span class="artboard-status">24 × 24</span>
-          </div>
-          <div class="artboard-canvas" aria-hidden="true">
-            <svg class="lens-mark" viewBox="0 0 120 120" focusable="false">
-              <path class="lens-path" d="M18 60 C 38 26, 82 26, 102 60 C 82 94, 38 94, 18 60 Z"></path>
-              <circle class="lens-pupil" cx="60" cy="60" r="13"></circle>
-              <circle class="lens-spark" cx="52" cy="52" r="3.4"></circle>
-            </svg>
-          </div>
-          <div class="artboard-foot">
-            <span class="artboard-tag">role="img"</span>
-            <span class="artboard-tag is-ok">aria-labelledby</span>
-            <span class="artboard-tag">&lt;title&gt;</span>
-          </div>
-        </div>
+      <div class="install-block reveal">
+        <code class="install-cmd">curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh</code>
+        <button type="button" class="install-copy" data-copy="curl -fsSL https://raw.githubusercontent.com/srivtx/iconlens/main/install.sh | sh">Copy</button>
       </div>
+      <p class="hero-note reveal">Installs the <code class="code">iconlens</code> binary with Bun. It is not published to npm; <code class="code">bunx github:srivtx/iconlens</code> runs it without installing.</p>
     </div>
   </section>
 
