@@ -5,12 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>iconlens — offline SVG accessibility audit</title>
 <meta name="description" content="iconlens computes the accessible name of standalone SVG files the way a screen reader would, then flags the structural failures that break the name. It runs offline and emits text, JSON, or SARIF 2.1.0.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta property="og:title" content="iconlens — offline SVG accessibility audit">
 <meta property="og:description" content="Offline accessibility audit for standalone .svg files: accessible-name computation, eight rules, and JSON or SARIF 2.1.0 output.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://iconlens-srivtx.vercel.app">
+<meta property="og:image" content="https://iconlens-srivtx.vercel.app/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="iconlens — offline SVG accessibility audit">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="iconlens — offline SVG accessibility audit">
+<meta name="twitter:description" content="Offline accessibility audit for standalone .svg files: accessible-name computation, eight rules, and JSON or SARIF 2.1.0 output.">
+<meta name="twitter:image" content="https://iconlens-srivtx.vercel.app/assets/og.png">
 <link rel="canonical" href="https://iconlens-srivtx.vercel.app">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e11d48'/%3E%3Ccircle cx='14' cy='14' r='6.4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M19 19l6 6' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/lens.css">
@@ -56,6 +65,7 @@
       <a href="#install">Install</a>
       <a href="#usage">Usage</a>
       <a href="#playground">Playground</a>
+      <a href="https://github.com/srivtx/iconlens">GitHub</a>
     </nav>
 
     <div class="nav__actions">
@@ -334,7 +344,7 @@ const result = auditSvg(source, "logo.svg");
 const name = accessibleName(parseSvg(source));
 // { name: "Company logo", source: "aria-labelledby" }
 
-const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
+const sarif = toSarif(result, "iconlens", "0.2.0");</code></pre>
 
       <div class="prose reveal">
         <p>Exit code is <code>1</code> on any error-severity issue, <code>0</code> otherwise, and <code>2</code> with no arguments. <code>--fail-on</code> defaults to <code>error</code> and also accepts <code>warning</code>, <code>info</code>, or <code>none</code>.</p>
@@ -735,7 +745,7 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
       $schema: "https://json.schemastore.org/sarif-2.1.0.json",
       runs: [
         {
-          tool: { driver: { name: "iconlens", version: "0.1.0" } },
+          tool: { driver: { name: "iconlens", version: "0.2.0" } },
           results: (result.issues || []).map(function (issue) {
             var level =
               issue.severity === "error"
@@ -766,7 +776,7 @@ const sarif = toSarif(result, "iconlens", "0.1.0");</code></pre>
     var api = window.IconLens;
     if (api && typeof api.toSarif === "function") {
       try {
-        return api.toSarif(result, "iconlens", "0.1.0");
+        return api.toSarif(result, "iconlens", "0.2.0");
       } catch (error) {
         void 0;
       }

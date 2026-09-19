@@ -1,8 +1,9 @@
 {
   "name": "iconlens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Offline standalone-SVG accessibility linter. Computes accessible names per SVG-AAM and flags missing alt, dangling references and bad focus order.",
   "type": "module",
+  "author": "srivtx",
   "main": "src/index.ts",
   "module": "src/index.ts",
   "types": "src/index.ts",
@@ -10,7 +11,8 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "bin": {
@@ -36,10 +38,7 @@
     "bun"
   ],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/srivtx/iconlens.git"
-  },
+  "repository": "https://github.com/srivtx/iconlens",
   "homepage": "https://iconlens-srivtx.vercel.app",
   "bugs": {
     "url": "https://github.com/srivtx/iconlens/issues"
@@ -49,9 +48,11 @@
   },
   "files": [
     "src",
+    "install.sh",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "devDependencies": {
     "@types/bun": "^1.4.2",

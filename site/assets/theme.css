@@ -5,6 +5,18 @@
   --accent-ink: #ffffff;
 }
 
+[data-theme="dark"] {
+  --accent: #fb7185;
+  --accent-ink: #0a0a0a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --accent: #fb7185;
+    --accent-ink: #0a0a0a;
+  }
+}
+
 /* Page-specific tweak: keep the SARIF action row off the results table. */
 .playground__results .btn-row {
   margin-top: var(--s-4);

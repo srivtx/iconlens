@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-09-20
 
 ### Fixed
 
@@ -19,13 +19,22 @@ All notable changes to this project are documented here. The format is based on
 - `aria-hidden="false"` no longer suppresses `SVG-DECOR-003`.
 - `tabindex="-1"` (programmatic focus) is no longer a focus-order violation.
 - SARIF `artifactLocation.uri` is the plain file path, not the annotated
-  finding location.
+  finding location. The site playground emits the same `0.2.0` tool version.
 
 ### Added
 
 - `SVG-REF-009`: dangling `aria-describedby` references.
 - `-q` as a short alias for `--quiet`, and `-` to read an SVG from stdin.
 - Regression tests for every fix above.
+- `robots.txt` and `sitemap.xml` for the static site.
+- CI bundle-drift gate: `build:site` is rebuilt and `site/assets/demo.js` must
+  be byte-identical, alongside `check:site`, `sh -n install.sh` and
+  `sh install.sh --help`.
+
+### Changed
+
+- Publish metadata: `author`, a plain-string `repository`, an explicit `files`
+  allowlist, and an `exports` map that also exposes `./package.json`.
 
 ### Removed
 
@@ -47,4 +56,5 @@ All notable changes to this project are documented here. The format is based on
 - `makeGoodSvg` / `makeBadSvg` fixtures and `writeFixturesTo(dir)` helper.
 - GitHub Actions CI running typecheck, tests, and fixture CLI checks.
 
+[0.2.0]: https://github.com/srivtx/iconlens/releases/tag/v0.2.0
 [0.1.0]: https://github.com/srivtx/iconlens/releases/tag/v0.1.0
