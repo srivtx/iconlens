@@ -16,14 +16,14 @@
 
 ---
 
-**Live site:** [iconlens](https://iconlens-srivtx.vercel.app)  ·  **Playground:** [https://iconlens-srivtx.vercel.app/#playground](https://iconlens-srivtx.vercel.app/#playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
+**Live site:** [iconlens](https://srivtx.github.io/iconlens)  ·  **Playground:** [https://srivtx.github.io/iconlens/#playground](https://srivtx.github.io/iconlens/#playground)  ·  **Source:** [github.com/srivtx/iconlens](https://github.com/srivtx/iconlens)
 
-**Docs:** [Rules](https://iconlens-srivtx.vercel.app/rules)  ·  [Usage](https://iconlens-srivtx.vercel.app/usage)  ·  [CI](https://iconlens-srivtx.vercel.app/ci)  ·  [FAQ](https://iconlens-srivtx.vercel.app/faq)
+**Docs:** [Rules](https://srivtx.github.io/iconlens/rules)  ·  [Usage](https://srivtx.github.io/iconlens/usage)  ·  [CI](https://srivtx.github.io/iconlens/ci)  ·  [FAQ](https://srivtx.github.io/iconlens/faq)
 
 ## Website
 
 The product site and a fully client-side playground live at
-**[iconlens-srivtx.vercel.app](https://iconlens-srivtx.vercel.app)**. The site is
+**[srivtx.github.io/iconlens](https://srivtx.github.io/iconlens)**. The site is
 static: no framework, no external requests, and no build step at deploy time.
 Vercel serves the `site/` directory directly (`vercel.json`).
 
@@ -261,7 +261,7 @@ Every tool emits stable JSON with `--json` and SARIF 2.1.0, with a documented
 exit-code scheme, so an agent can read findings without scraping a screen.
 
 - **Docs index:** the site serves a machine-readable index at
-  [iconlens-srivtx.vercel.app/llms.txt](https://iconlens-srivtx.vercel.app/llms.txt).
+  [srivtx.github.io/iconlens/llms.txt](https://srivtx.github.io/iconlens/llms.txt).
 - **MCP server:** [lenses-mcp](https://github.com/srivtx/lenses-mcp) exposes all
   five tools over stdio (audit for each format, plus `booklens_fix`,
   `waxseal_seal`, `waxseal_verify`, `waxseal_inspect`).
